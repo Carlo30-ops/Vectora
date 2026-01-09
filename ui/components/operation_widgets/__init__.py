@@ -1,0 +1,3 @@
+"""
+Widgets de operaciones PDF
+"""

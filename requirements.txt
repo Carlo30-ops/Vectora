@@ -1,0 +1,12 @@
+PySide6
+PyPDF2
+pikepdf
+pdf2docx
+docx2pdf
+pdf2image
+Pillow
+pytesseract
+watchdog
+opencv-python
+python-dotenv
+pyinstaller

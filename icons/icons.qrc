@@ -1,0 +1,36 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+<qresource prefix="/icons">
+    <file>file-text.svg</file>
+    <file>home.svg</file>
+    <file>wand-2.svg</file>
+    <file>combine.svg</file>
+    <file>scissors.svg</file>
+    <file>archive.svg</file>
+    <file>refresh-cw.svg</file>
+    <file>shield.svg</file>
+    <file>scan-text.svg</file>
+    <file>folder-clock.svg</file>
+    <file>upload.svg</file>
+    <file>download.svg</file>
+    <file>x.svg</file>
+    <file>arrow-right.svg</file>
+    <file>chevron-right.svg</file>
+    <file>check-circle-2.svg</file>
+    <file>clock.svg</file>
+    <file>play.svg</file>
+    <file>alert-circle.svg</file>
+    <file>sparkles.svg</file>
+    <file>grip-vertical.svg</file>
+    <file>help-circle.svg</file>
+    <file>lock.svg</file>
+    <file>unlock.svg</file>
+    <file>eye.svg</file>
+    <file>eye-off.svg</file>
+    <file>image.svg</file>
+    <file>file-spreadsheet.svg</file>
+    <file>file-search.svg</file>
+    <file>languages.svg</file>
+    <file>folder.svg</file>
+</qresource>
+</RCC>
