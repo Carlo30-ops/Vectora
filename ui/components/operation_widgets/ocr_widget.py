@@ -60,50 +60,103 @@ class OCRWidget(BaseOperationWidget):
         self.setup_ui()
     
     def setup_ui(self):
-        """Configura la interfaz"""
-        # Selector de archivo
-        file_layout = QHBoxLayout()
-        self.file_btn = QPushButton("📄 Seleccionar PDF Escaneado")
-        self.file_btn.clicked.connect(self.select_file)
-        file_layout.addWidget(self.file_btn)
+        """Configura la interfaz - Look Premium"""
+        # Cambiar icono de la base
+        icon = IconHelper.get_icon("search", color="#FFFFFF")
+        if not icon.isNull():
+            self.icon_lbl.setPixmap(icon.pixmap(36, 36))
+            
+        # Dropzone para archivo
+        drop_area = QFrame()
+        drop_area.setObjectName("glassContainer")
+        drop_area.setMinimumHeight(100)
+        drop_area.setStyleSheet("""
+            QFrame {
+                border: 2px dashed {{BORDER}};
+                background-color: {{HOVER}};
+            }
+            QFrame:hover { border-color: {{ACCENT}}; }
+        """)
         
-        self.file_label = QLabel("Ningún archivo seleccionado")
-        self.file_label.setStyleSheet("color: #6b7280; font-style: italic;")
-        file_layout.addWidget(self.file_label, 1)
-        self.config_layout.addLayout(file_layout)
+        dal = QVBoxLayout(drop_area)
+        dal.setAlignment(Qt.AlignCenter)
         
-        # Opciones
-        opts_layout = QHBoxLayout()
+        self.file_label = QLabel("Arrastra tu PDF escaneado aquí o haz clic para seleccionar")
+        self.file_label.setFont(QFont("Inter", 11))
+        self.file_label.setStyleSheet("color: {{TEXT_SECONDARY}};")
+        dal.addWidget(self.file_label)
+        
+        select_btn = QPushButton("Seleccionar PDF")
+        select_btn.setCursor(Qt.PointingHandCursor)
+        select_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: {{ACCENT}};
+                border: 1px solid {{ACCENT}};
+                border-radius: 8px;
+                padding: 6px 16px;
+                font-weight: 600;
+            }
+            QPushButton:hover {
+                background-color: {{ACCENT}};
+                color: {{ACCENT_TEXT}};
+            }
+        """)
+        select_btn.clicked.connect(self.select_file)
+        dal.addWidget(select_btn, 0, Qt.AlignCenter)
+        
+        self.config_layout.addWidget(drop_area)
+        
+        # Opciones en panel Glass
+        opt_panel = QFrame()
+        opt_panel.setObjectName("glassContainer")
+        opt_panel.setStyleSheet("padding: 20px;")
+        
+        ol = QHBoxLayout(opt_panel)
+        ol.setSpacing(20)
         
         # Idioma
-        opts_layout.addWidget(QLabel("Idioma:"))
+        vl_lang = QVBoxLayout()
+        vl_lang.addWidget(QLabel("Idioma del Documento"))
         self.lang_combo = QComboBox()
-        # Mapeo de nombres amigables a códigos Tesseract
         self.langs = {
             "Español + Inglés": "spa+eng",
             "Español": "spa",
             "Inglés": "eng"
         }
         self.lang_combo.addItems(self.langs.keys())
-        opts_layout.addWidget(self.lang_combo)
+        vl_lang.addWidget(self.lang_combo)
+        ol.addLayout(vl_lang)
         
         # DPI
-        opts_layout.addWidget(QLabel("Calidad (DPI):"))
+        vl_dpi = QVBoxLayout()
+        vl_dpi.addWidget(QLabel("Calidad (DPI)"))
         self.dpi_spin = QSpinBox()
         self.dpi_spin.setRange(150, 600)
         self.dpi_spin.setValue(300)
-        self.dpi_spin.setSingleStep(50)
         self.dpi_spin.setSuffix(" dpi")
-        opts_layout.addWidget(self.dpi_spin)
+        vl_dpi.addWidget(self.dpi_spin)
+        ol.addLayout(vl_dpi)
         
-        opts_layout.addStretch()
-        self.config_layout.addLayout(opts_layout)
+        self.config_layout.addWidget(opt_panel)
         
         # Nota informativa
-        note = QLabel("Nota: El proceso puede tardar dependiendo del número de páginas y la resolución.")
-        note.setStyleSheet("color: #6b7280; font-size: 11px; margin-top: 10px;")
+        note_container = QFrame()
+        note_container.setStyleSheet(f"background-color: {{HOVER}}; border-radius: 8px; padding: 12px;")
+        nl = QHBoxLayout(note_container)
+        
+        note_icon = QLabel()
+        ni = IconHelper.get_icon("info", color="{{TEXT_SECONDARY}}")
+        if not ni.isNull(): note_icon.setPixmap(ni.pixmap(16, 16))
+        nl.addWidget(note_icon)
+        
+        note = QLabel("El proceso puede tardar según el número de páginas y la resolución.")
+        note.setFont(QFont("Inter", 9))
+        note.setStyleSheet("color: {{TEXT_SECONDARY}};")
         note.setWordWrap(True)
-        self.config_layout.addWidget(note)
+        nl.addWidget(note, 1)
+        
+        self.config_layout.addWidget(note_container)
         
     def select_file(self):
         file, _ = QFileDialog.getOpenFileName(self, "Seleccionar PDF", "", "PDF (*.pdf)")

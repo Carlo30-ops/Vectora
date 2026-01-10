@@ -55,69 +55,104 @@ class CompressWidget(BaseOperationWidget):
         self.setup_ui()
     
     def setup_ui(self):
-        """Configura la interfaz específica"""
-        # Selección de archivo
-        btn_layout = QHBoxLayout()
-        select_btn = QPushButton("📄 Seleccionar PDF")
-        select_btn.clicked.connect(self.select_file)
+        """Configura la interfaz - Look Premium"""
+        # Cambiar icono de la base
+        icon = IconHelper.get_icon("compress", color="#FFFFFF")
+        if not icon.isNull():
+            self.icon_lbl.setPixmap(icon.pixmap(36, 36))
+            
+        # Dropzone para archivo
+        drop_area = QFrame()
+        drop_area.setObjectName("glassContainer")
+        drop_area.setMinimumHeight(120)
+        drop_area.setStyleSheet("""
+            QFrame {
+                border: 2px dashed {{BORDER}};
+                background-color: {{HOVER}};
+            }
+            QFrame:hover { border-color: {{ACCENT}}; }
+        """)
+        
+        dal = QVBoxLayout(drop_area)
+        dal.setAlignment(Qt.AlignCenter)
+        
+        self.file_label = QLabel("Arrastra tu PDF aquí o haz clic para seleccionar")
+        self.file_label.setFont(QFont("Inter", 11))
+        self.file_label.setStyleSheet("color: {{TEXT_SECONDARY}};")
+        dal.addWidget(self.file_label)
+        
+        select_btn = QPushButton("Seleccionar PDF")
+        select_btn.setCursor(Qt.PointingHandCursor)
         select_btn.setStyleSheet("""
             QPushButton {
-                background-color: #3b82f6;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 8px 16px;
-                font-weight: bold;
+                background-color: transparent;
+                color: {{ACCENT}};
+                border: 1px solid {{ACCENT}};
+                border-radius: 8px;
+                padding: 6px 16px;
+                font-weight: 600;
             }
             QPushButton:hover {
-                background-color: #2563eb;
+                background-color: {{ACCENT}};
+                color: {{ACCENT_TEXT}};
             }
         """)
-        btn_layout.addWidget(select_btn)
-        btn_layout.addStretch()
+        select_btn.clicked.connect(self.select_file)
+        dal.addWidget(select_btn, 0, Qt.AlignCenter)
         
-        self.config_layout.addLayout(btn_layout)
+        self.config_layout.addWidget(drop_area)
         
-        self.file_label = QLabel("Ningún archivo seleccionado")
-        self.file_label.setStyleSheet("color: #6b7280; margin: 8px 0 16px 0;")
-        self.config_layout.addWidget(self.file_label)
+        # Panel de Opciones - Glass look
+        opt_panel = QFrame()
+        opt_panel.setObjectName("glassContainer")
+        opt_panel.setStyleSheet("padding: 24px;")
         
-        # Slider de nivel de compresión
-        slider_container = QFrame()
-        slider_container.setStyleSheet(".QFrame { background-color: #f3f4f6; border-radius: 8px; padding: 16px; }")
-        slider_layout = QVBoxLayout(slider_container)
+        ol = QVBoxLayout(opt_panel)
+        ol.setSpacing(16)
         
         header_layout = QHBoxLayout()
-        header_layout.addWidget(QLabel("Nivel de Compresión:"))
+        hl_label = QLabel("Nivel de Compresión")
+        hl_label.setFont(QFont("Inter", 11, QFont.Bold))
+        header_layout.addWidget(hl_label)
+        
         self.level_label = QLabel("Media (Recomendado)")
-        self.level_label.setStyleSheet("font-weight: bold; color: #2563eb;")
+        self.level_label.setFont(QFont("Inter", 10, QFont.Bold))
+        self.level_label.setStyleSheet("color: {{ACCENT}};")
         header_layout.addWidget(self.level_label)
         header_layout.addStretch()
-        slider_layout.addLayout(header_layout)
+        ol.addLayout(header_layout)
         
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setMinimum(0)
         self.slider.setMaximum(100)
         self.slider.setValue(50)
-        self.slider.setTickPosition(QSlider.TicksBelow)
-        self.slider.setTickInterval(25)
+        self.slider.setFixedHeight(30)
+        self.slider.setCursor(Qt.PointingHandCursor)
         self.slider.valueChanged.connect(self.update_compression_level)
-        slider_layout.addWidget(self.slider)
+        ol.addWidget(self.slider)
         
         # Etiquetas del slider
         labels_layout = QHBoxLayout()
-        labels_layout.addWidget(QLabel("Baja"))
+        l_low = QLabel("Baja")
+        l_mid = QLabel("Media")
+        l_high = QLabel("Extrema")
+        for l in [l_low, l_mid, l_high]:
+            l.setFont(QFont("Inter", 9))
+            l.setStyleSheet("color: {{TEXT_SECONDARY}};")
+            
+        labels_layout.addWidget(l_low)
         labels_layout.addStretch()
-        labels_layout.addWidget(QLabel("Media"))
+        labels_layout.addWidget(l_mid)
         labels_layout.addStretch()
-        labels_layout.addWidget(QLabel("Extrema"))
-        slider_layout.addLayout(labels_layout)
+        labels_layout.addWidget(l_high)
+        ol.addLayout(labels_layout)
         
         self.info_label = QLabel("Reduce ~40% el tamaño manteniendo buena calidad")
-        self.info_label.setStyleSheet("color: #6b7280; font-style: italic; margin-top: 8px;")
-        slider_layout.addWidget(self.info_label)
+        self.info_label.setFont(QFont("Inter", 10))
+        self.info_label.setStyleSheet("color: {{TEXT_SECONDARY}}; font-style: italic;")
+        ol.addWidget(self.info_label)
         
-        self.config_layout.addWidget(slider_container)
+        self.config_layout.addWidget(opt_panel)
 
     def select_file(self):
         """Selecciona el archivo a comprimir"""

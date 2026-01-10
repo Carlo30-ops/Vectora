@@ -4,7 +4,8 @@ Implementación prototipo en Python compatible con Vectora.
 """
 import uuid
 import re
-from typing import List, Dict, Optional, Any
+import unicodedata
+from typing import List, Dict, Optional, Any, Tuple
 from enum import Enum
 
 class StepStatus(Enum):
@@ -17,6 +18,8 @@ class ActionType(Enum):
     SPLIT = "dividir_pdf"
     CONVERT = "convertir_pdf"
     COMPRESS = "comprimir_pdf"
+    SECURITY = "seguridad_pdf"
+    OCR = "ocr_pdf"
     DOWNLOAD = "descargar"
     UNKNOWN = "unknown"
 
@@ -27,7 +30,7 @@ class WorkflowStep:
         self.params = params or {}
         self.status = StepStatus.PENDING
         
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
             "action": self.action.value,
@@ -47,7 +50,7 @@ class Workflow:
     def get_last_step(self) -> Optional[WorkflowStep]:
         return self.steps[-1] if self.steps else None
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "workflow_id": self.id,
             "steps": [s.to_dict() for s in self.steps],
@@ -56,51 +59,69 @@ class Workflow:
 
 class WorkflowAssistant:
     def __init__(self):
-        # Patrones simples para detección de intención
+        # Patrones para detección de intención (incluyendo conjugaciones comunes)
         self.patterns = {
-            r"(unir|juntar|combinar)": ActionType.MERGE,
-            r"(dividir|separar|extraer)": ActionType.SPLIT,
-            r"(convertir|pasar|transformar).*?(word|doc|excel|xls|imagen|jpg|png)": ActionType.CONVERT,
-            r"(comprimir|reducir|optimizar)": ActionType.COMPRESS,
-            r"(descargar|guardar|bajar)": ActionType.DOWNLOAD
+            r"(unir|juntar|combinar|une|junta|combina|unific)": ActionType.MERGE,
+            r"(dividir|separar|extraer|fragment|troce|parte)": ActionType.SPLIT,
+            r"(convert|pas|transform|llev|cambi|vuelv|pasa)": ActionType.CONVERT,
+            r"(comprim|reduc|optimiz|achic)": ActionType.COMPRESS,
+            r"(descarg|guard|baj|salv)": ActionType.DOWNLOAD,
+            r"(seguridad|prote|encrip|contrase)": ActionType.SECURITY,
+            r"(ocr|texto|reconoc)": ActionType.OCR
         }
         
-    def parse_intent(self, text: str) -> List[ActionType]:
-        """Detecta acciones en el texto, respetando orden aproximado"""
+    def _normalize_text(self, text: str) -> str:
+        """Elimina acentos y normaliza a minúsculas"""
         text = text.lower()
+        return ''.join(
+            c for c in unicodedata.normalize('NFD', text)
+            if unicodedata.category(c) != 'Mn'
+        )
+
+    def parse_intent(self, text: str) -> List[Tuple[ActionType, Dict[str, Any]]]:
+        """Detecta acciones en el texto de forma secuencial y robusta"""
+        normalized = self._normalize_text(text)
         detected_actions = []
         
-        # Estrategia simple: dividir por conectores clave y analizar partes
-        parts = re.split(r"(?: y | luego | despues | finalmente | para )", text)
+        # Split por conectores comunes con flexibilidad de espacios
+        parts = re.split(r"\s+(?:y|luego|despues|finalmente|para|entonces)\s+|\.\s*", normalized)
         
         for part in parts:
-            part_action = ActionType.UNKNOWN
+            part = part.strip()
+            if not part: continue
             
-            # Detectar conversión específica primero (captura formato)
-            if "convertir" in part or "pasar" in part:
-                 if any(x in part for x in ["word", "doc"]):
-                     detected_actions.append((ActionType.CONVERT, {"format": "docx"}))
-                     continue
-                 elif any(x in part for x in ["excel", "xls"]):
-                     detected_actions.append((ActionType.CONVERT, {"format": "xlsx"}))
-                     continue
-                 elif any(x in part for x in ["imagen", "jpg"]):
-                     detected_actions.append((ActionType.CONVERT, {"format": "jpg"}))
+            found_in_part = False
+            
+            # 1. Lógica especial de conversión (necesita formato)
+            if any(x in part for x in ["convert", "pas", "transform", "llev", "cambi", "vuelv"]):
+                 params = {}
+                 if any(x in part for x in ["word", "doc"]): params["format"] = "docx"
+                 elif any(x in part for x in ["excel", "xls"]): params["format"] = "xlsx"
+                 elif any(x in part for x in ["imagen", "jpg"]): params["format"] = "jpg"
+                 elif any(x in part for x in ["png"]): params["format"] = "png"
+                 elif any(x in part for x in ["pdf"]): params["format"] = "pdf"
+                 
+                 if "format" in params:
+                     detected_actions.append((ActionType.CONVERT, params))
+                     found_in_part = True
                      continue
 
-            # Detectar otras acciones
-            for pattern, action in self.patterns.items():
-                if re.search(pattern, part):
-                    if action == ActionType.CONVERT: continue # Ya manejado arriba con params
-                    detected_actions.append((action, {}))
-                    break
+            # 2. Búsqueda por patrones generales
+            if not found_in_part:
+                for pattern, action in self.patterns.items():
+                    if re.search(pattern, part):
+                        # Evitar duplicar conversión si ya se intentó arriba y falló el formato
+                        if action == ActionType.CONVERT: continue
+                        
+                        detected_actions.append((action, {}))
+                        found_in_part = True
+                        break
                     
         return detected_actions
 
-    def handle_user_intent(self, user_input: str, workflow: Workflow = None) -> Dict[str, Any]:
+    def handle_user_intent(self, user_input: str, workflow: Optional[Workflow] = None) -> Dict[str, Any]:
         """
-        Función principal expuesta al frontend.
-        Procesa el input, actualiza el workflow y genera respuesta.
+        Procesa el input del usuario, actualiza el flujo y genera respuesta.
         """
         if workflow is None:
             workflow = Workflow()
@@ -109,15 +130,14 @@ class WorkflowAssistant:
         
         if not actions_data:
             return {
-                "message": "No entendí muy bien qué quieres hacer. ¿Puedes intentar con 'Unir PDFs' o 'Convertir a Word'?",
+                "message": "¿Qué te gustaría hacer con tus archivos? Puedo unirlos, dividirlos, convertirlos o comprimirlos.",
                 "workflow": workflow.to_dict(),
                 "needs_input": False
             }
             
         new_step_count = 0
         for action_type, params in actions_data:
-            # Lógica de encadenamiento inteligente
-            # Si hay un paso previo, asumimos que el input de este paso es el output del anterior
+            # Encadenamiento: el output de uno es el input del siguiente
             if workflow.get_last_step():
                 params["input_source"] = f"step_ref:{workflow.get_last_step().id}"
             
@@ -125,33 +145,32 @@ class WorkflowAssistant:
             workflow.add_step(step)
             new_step_count += 1
             
-        # Análisis Contextual y Slots Faltantes
-        response_msg = ""
+        # Generar respuesta contextual
+        last_step = workflow.get_last_step()
         missing_param = None
-        
-        # Especulativo: Sugerir 'descargar' si termina en conversión o unión
-        last = workflow.get_last_step()
-        if last and last.action in [ActionType.MERGE, ActionType.CONVERT]:
-             response_msg = "He añadido los pasos. Al finalizar, ¿quieres descargar el archivo resultante?"
-        
-        # Validar slots (Ejemplo simple)
+        response_msg = ""
+
+        # Validar si falta información crítica (SLOT FILLING)
         for step in workflow.steps:
             if step.status == StepStatus.PENDING:
                 if step.action == ActionType.CONVERT and "format" not in step.params:
-                    # Falta formato
                     missing_param = "format"
-                    response_msg = "¿A qué formato te gustaría convertir los archivos? (Word, Excel, Imagen)"
-                    break # Detener y preguntar
+                    response_msg = "¿A qué formato prefieres convertir? (Word, Excel, JPG, PNG)"
+                    break
         
         if not response_msg:
+            # Mensaje de éxito acumulativo
             action_names = [s.action.value.replace("_", " ") for s in workflow.steps[-new_step_count:]]
-            response_msg = f"Entendido. Agregué: {', '.join(action_names)}. ¿Todo listo para ejecutar?"
+            if len(action_names) > 1:
+                response_msg = f"Genial, he configurado los pasos: {', '.join(action_names)}. ¿Ejecutamos?"
+            else:
+                response_msg = f"Entendido, paso de '{action_names[0]}' añadido. ¿Algo más o ejecutamos?"
 
         return {
             "message": response_msg,
             "workflow": workflow.to_dict(),
             "needs_input": missing_param is not None,
-            "suggested_next_action": "descargar" if not missing_param else None
+            "can_execute": True if not missing_param else False
         }
 
 # --- Bloque de Prueba (Main Stub) ---
@@ -159,14 +178,18 @@ if __name__ == "__main__":
     assistant = WorkflowAssistant()
     wf = Workflow()
     
-    print("--- Inicio Simulación ---")
-    user_in = "Une estos PDFs y luego pásalos a Word"
-    print(f"User: {user_in}")
+    print("--- Inicio Simulación de Flujo Inteligente ---")
+    inputs = [
+        "Une estos PDFs y luego pásalos a Word",
+        "También comprímelos un poco",
+        "Y al final ponles contraseña"
+    ]
     
-    result = assistant.handle_user_intent(user_in, wf)
-    
+    for i in inputs:
+        print(f"\n> Usuario: {i}")
+        result = assistant.handle_user_intent(i, wf)
+        print(f"< Asistente: {result['message']}")
+        
     import json
-    print("\nAssistant Response:")
-    print(f"Message: {result['message']}")
-    print("Workflow State:")
-    print(json.dumps(result['workflow'], indent=2))
+    print("\n--- Estado Final del Workflow ---")
+    print(json.dumps(wf.to_dict(), indent=2))

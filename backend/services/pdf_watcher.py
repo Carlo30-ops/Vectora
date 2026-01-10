@@ -13,10 +13,12 @@ from utils.logger import get_logger
 class PDFWatcherHandler(FileSystemEventHandler):
     """Manejador de eventos de archivo"""
     
-    def __init__(self, callback: Callable[[str], None], logger: Logger):
+    def __init__(self, callback: Callable[[str], None], logger: Logger, retries: int, interval: float):
         self.callback = callback
         self.logger = logger
         self.processed = set()
+        self.stability_retries = retries
+        self.stability_interval = interval
     
     def on_created(self, event):
         if event.is_directory: return
@@ -40,43 +42,44 @@ class PDFWatcherHandler(FileSystemEventHandler):
         else:
             self.logger.warning(f"Timeout esperando estabilidad de archivo: {path}")
         
-    def wait_for_file_stability(self, path: str, retries: int = 10, interval: float = 0.5) -> bool:
+    def wait_for_file_stability(self, path: str) -> bool:
         """
         Espera a que el archivo deje de crecer (indica fin de copia)
-        Args:
-            path: Ruta del archivo
-            retries: Número de intentos
-            interval: Tiempo entre intentos
-            
+        Uses self.stability_retries and self.stability_interval
+        
         Returns:
             bool: True si el archivo es estable, False si hubo timeout
         """
         last_size = -1
-        for i in range(retries):
+        for i in range(self.stability_retries):
             try:
                 current_size = os.path.getsize(path)
                 if current_size == last_size and current_size > 0:
                     # El tamaño no cambió en el último intervalo
                     return True
                 last_size = current_size
-                time.sleep(interval)
+                time.sleep(self.stability_interval)
             except OSError:
                 # Archivo puede estar bloqueado o no existir aún
-                time.sleep(interval)
+                time.sleep(self.stability_interval)
                 
         return False
 
 class PDFWatchService:
     """Servicio de monitoreo de carpetas"""
     
-    def __init__(self, logger: Optional[Logger] = None):
+    def __init__(self, logger: Optional[Logger] = None, stability_retries: int = 10, stability_interval: float = 0.5):
         """
         Inicializa el servicio de monitoreo
         Args:
             logger: Logger opcional
+            stability_retries: Intentos para verificar estabilidad de archivo
+            stability_interval: Segundos entre intentos
         """
         self.logger = logger or get_logger(__name__)
         self.observer = None
+        self.stability_retries = stability_retries
+        self.stability_interval = stability_interval
         
     def start(self, path: str, callback: Callable[[str], None]):
         """
@@ -92,7 +95,8 @@ class PDFWatchService:
         self.stop() # Asegurar limpieza anterior
         
         self.logger.info(f"Iniciando vigilancia en: {path}")
-        handler = PDFWatcherHandler(callback, self.logger)
+        self.logger.info(f"Iniciando vigilancia en: {path}")
+        handler = PDFWatcherHandler(callback, self.logger, self.stability_retries, self.stability_interval)
         self.observer = Observer()
         self.observer.schedule(handler, path, recursive=False)
         self.observer.start()

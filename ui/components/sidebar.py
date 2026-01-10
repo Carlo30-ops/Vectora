@@ -158,52 +158,53 @@ class Sidebar(QWidget):
     def create_header(self) -> QWidget:
         header = QWidget()
         header_layout = QHBoxLayout(header)
-        header_layout.setContentsMargins(24, 32, 24, 24)
+        header_layout.setContentsMargins(24, 40, 24, 24)
         header_layout.setSpacing(12)
         
-        # Icono Logo
-        logo_label = QLabel()
-        logo_label.setFixedSize(40, 40)
-        logo_label.setAlignment(Qt.AlignCenter)
-        logo_label.setStyleSheet("background-color: #000000; border-radius: 10px;")
+        # Icono Logo - Diseño Premium tipo Glass
+        logo_container = QFrame()
+        logo_container.setFixedSize(42, 42)
+        logo_container.setObjectName("glassContainer")
+        logo_container.setStyleSheet("""
+            QFrame#glassContainer {
+                background-color: #000000;
+                border-radius: 12px;
+            }
+        """)
         
-        # Intentar cargar icono blanco
-        icon = IconHelper.get_icon("file-text", color="#ffffff")
+        logo_layout = QVBoxLayout(logo_container)
+        logo_layout.setContentsMargins(0, 0, 0, 0)
+        logo_layout.setAlignment(Qt.AlignCenter)
+        
+        logo_label = QLabel()
+        icon = IconHelper.get_icon("file-text", color="#FFFFFF")
         if not icon.isNull():
             logo_label.setPixmap(icon.pixmap(24, 24))
         else:
-             logo_label.setText("V") 
-             logo_label.setFont(QFont("Segoe UI", 18, QFont.Bold))
-             logo_label.setStyleSheet("color: white; background-color: black; border-radius: 10px;")
-
-        header_layout.addWidget(logo_label)
+            logo_label.setText("V")
+            logo_label.setStyleSheet("color: white; font-weight: bold; font-size: 18px;")
+        
+        logo_layout.addWidget(logo_label)
+        header_layout.addWidget(logo_container)
         
         text_layout = QVBoxLayout()
         text_layout.setSpacing(0)
-        text_layout.setContentsMargins(0, 4, 0, 4)
         
-        self.title_label = QLabel("Vectora")
+        self.title_label = QLabel("VECTORA")
         self.title_label.setObjectName("sidebarTitle")
-        self.title_label.setFont(QFont("Segoe UI", 16, QFont.Bold))
-        # Styles for this label managed by global QSS or specific overrides if needed
-        # title.setStyleSheet("color: #111827; border: none; background: transparent;")
+        self.title_label.setFont(QFont("Inter", 14, QFont.ExtraBold))
+        self.title_label.setStyleSheet("letter-spacing: 1px;")
         text_layout.addWidget(self.title_label)
         
         header_layout.addLayout(text_layout)
         header_layout.addStretch()
         
-        # Theme Toggle Button
+        # Theme Toggle
         from ui.styles.theme_manager import theme_manager
-        
         self.theme_btn = QPushButton()
-        self.theme_btn.setFixedSize(32, 32)
+        self.theme_btn.setFixedSize(36, 36)
         self.theme_btn.setCursor(Qt.PointingHandCursor)
-        self.theme_btn.setToolTip("Cambiar Tema")
-        # Base style - colors updated in update_icons
-        self.theme_btn.setStyleSheet("""
-            QPushButton { background: transparent; border: none; border-radius: 6px; }
-            QPushButton:hover { background-color: rgba(128, 128, 128, 0.1); }
-        """)
+        self.theme_btn.setStyleSheet("background: transparent; border-radius: 18px;")
         self.theme_btn.clicked.connect(theme_manager.toggle_theme)
         
         header_layout.addWidget(self.theme_btn)

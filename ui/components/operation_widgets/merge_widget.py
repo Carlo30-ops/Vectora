@@ -102,44 +102,65 @@ class MergeWidget(BaseOperationWidget):
         self.setup_ui()
     
     def setup_ui(self):
-        """Configura la interfaz específica"""
-        # Botón para agregar archivos
-        add_btn = QPushButton("+ Agregar PDFs")
-        add_btn.clicked.connect(self.add_files)
-        add_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #ffffff;
-                color: #111827;
-                border: 1px solid #d1d5db;
-                border-radius: 10px;
-                padding: 12px 20px;
-                font-size: 14px;
-                font-weight: 600;
-            }
-            QPushButton:hover {
-                background-color: #f9fafb;
-                border-color: #000000;
-            }
-        """)
-        self.config_layout.addWidget(add_btn)
-        
-        # Lista de archivos con drag-drop completo
+        """Configura la interfaz específica - Modern Look"""
+        # Cambiar icono de la base
+        icon = IconHelper.get_icon("combine", color="#FFFFFF")
+        if not icon.isNull():
+            self.icon_lbl.setPixmap(icon.pixmap(36, 36))
+            
+        # Lista de archivos con drag-drop completo - Estilizada como Dropzone
         self.file_list = DragDropListWidget()
         self.file_list.files_dropped.connect(self.on_files_dropped)
         self.file_list.setStyleSheet("""
             QListWidget {
-                border: 2px dashed #d1d5db;
-                border-radius: 8px;
-                background-color: #f9fafb;
-                padding: 8px;
-                min-height: 200px;
+                border: 2px dashed {{BORDER}};
+                border-radius: 16px;
+                background-color: {{HOVER}};
+                padding: 12px;
+                min-height: 240px;
+                outline: none;
+            }
+            QListWidget:hover {
+                border-color: {{ACCENT}};
             }
         """)
         self.config_layout.addWidget(self.file_list)
         
+        # Action Bar para la lista
+        action_bar = QHBoxLayout()
+        add_btn = QPushButton("+ Agregar PDFs")
+        add_btn.setCursor(Qt.PointingHandCursor)
+        add_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: {{ACCENT}};
+                border: 1px solid {{ACCENT}};
+                border-radius: 10px;
+                padding: 8px 16px;
+                font-weight: 600;
+            }
+            QPushButton:hover {
+                background-color: {{ACCENT}};
+                color: {{ACCENT_TEXT}};
+            }
+        """)
+        add_btn.clicked.connect(self.add_files)
+        
+        clear_btn = QPushButton("Limpiar")
+        clear_btn.setCursor(Qt.PointingHandCursor)
+        clear_btn.setStyleSheet("border: none; color: {{TEXT_SECONDARY}}; font-size: 13px;")
+        clear_btn.clicked.connect(self.reset_operation)
+        
+        action_bar.addWidget(add_btn)
+        action_bar.addStretch()
+        action_bar.addWidget(clear_btn)
+        self.config_layout.addLayout(action_bar)
+        
         # Información
-        self.info_label = QLabel("Arrastra archivos PDF aquí o usa el botón para agregar")
-        self.info_label.setStyleSheet("color: #6b7280; font-size: 12px; margin-top: 8px;")
+        self.info_label = QLabel("Arrastra tus archivos PDF o usa el botón para agregar")
+        self.info_label.setFont(QFont("Inter", 10))
+        self.info_label.setStyleSheet("color: {{TEXT_SECONDARY}};")
+        self.info_label.setAlignment(Qt.AlignCenter)
         self.config_layout.addWidget(self.info_label)
     
     def add_files(self):

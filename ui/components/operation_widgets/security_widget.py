@@ -59,39 +59,81 @@ class SecurityWidget(BaseOperationWidget):
         self.setup_ui()
     
     def setup_ui(self):
-        """Configura la interfaz"""
-        # Selector de archivo
-        file_layout = QHBoxLayout()
-        self.file_btn = QPushButton("📄 Seleccionar PDF")
-        self.file_btn.clicked.connect(self.select_file)
-        file_layout.addWidget(self.file_btn)
+        """Configura la interfaz - Look Premium"""
+        # Cambiar icono de la base
+        icon = IconHelper.get_icon("shield", color="#FFFFFF")
+        if not icon.isNull():
+            self.icon_lbl.setPixmap(icon.pixmap(36, 36))
+            
+        # Dropzone para archivo
+        drop_area = QFrame()
+        drop_area.setObjectName("glassContainer")
+        drop_area.setMinimumHeight(100)
+        drop_area.setStyleSheet("""
+            QFrame {
+                border: 2px dashed {{BORDER}};
+                background-color: {{HOVER}};
+            }
+            QFrame:hover { border-color: {{ACCENT}}; }
+        """)
         
-        self.file_label = QLabel("Ningún archivo seleccionado")
-        self.file_label.setStyleSheet("color: #6b7280; font-style: italic;")
-        file_layout.addWidget(self.file_label, 1)
-        self.config_layout.addLayout(file_layout)
+        dal = QVBoxLayout(drop_area)
+        dal.setAlignment(Qt.AlignCenter)
         
-        # Selección de Modo (Radio Buttons)
-        mode_group = QGroupBox("Operación")
-        mode_layout = QHBoxLayout()
+        self.file_label = QLabel("Arrastra tu PDF aquí o haz clic para seleccionar")
+        self.file_label.setFont(QFont("Inter", 11))
+        self.file_label.setStyleSheet("color: {{TEXT_SECONDARY}};")
+        dal.addWidget(self.file_label)
+        
+        select_btn = QPushButton("Seleccionar PDF")
+        select_btn.setCursor(Qt.PointingHandCursor)
+        select_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: {{ACCENT}};
+                border: 1px solid {{ACCENT}};
+                border-radius: 8px;
+                padding: 6px 16px;
+                font-weight: 600;
+            }
+            QPushButton:hover {
+                background-color: {{ACCENT}};
+                color: {{ACCENT_TEXT}};
+            }
+        """)
+        select_btn.clicked.connect(self.select_file)
+        dal.addWidget(select_btn, 0, Qt.AlignCenter)
+        
+        self.config_layout.addWidget(drop_area)
+        
+        # Opciones en Horizontal
+        options_layout = QHBoxLayout()
+        options_layout.setSpacing(20)
+        
+        # Selección de Modo
+        mode_box = QGroupBox("Operación")
+        mode_box.setFont(QFont("Inter", 10, QFont.Bold))
+        ml = QVBoxLayout(mode_box)
+        ml.setSpacing(12)
+        
         self.mode_bg = QButtonGroup()
-        
         self.rb_encrypt = QRadioButton("Encriptar (Proteger)")
-        self.rb_decrypt = QRadioButton("Desencriptar (Quitar protección)")
+        self.rb_decrypt = QRadioButton("Desencriptar (Quitar)")
         self.rb_encrypt.setChecked(True)
         self.rb_encrypt.toggled.connect(self.toggle_mode)
         
         self.mode_bg.addButton(self.rb_encrypt, 0)
         self.mode_bg.addButton(self.rb_decrypt, 1)
         
-        mode_layout.addWidget(self.rb_encrypt)
-        mode_layout.addWidget(self.rb_decrypt)
-        mode_group.setLayout(mode_layout)
-        self.config_layout.addWidget(mode_group)
+        ml.addWidget(self.rb_encrypt)
+        ml.addWidget(self.rb_decrypt)
+        options_layout.addWidget(mode_box, 1)
         
         # --- Área de Contraseña ---
-        pwd_group = QGroupBox("Contraseña")
-        pwd_layout = QVBoxLayout()
+        pwd_box = QGroupBox("Contraseña")
+        pwd_box.setFont(QFont("Inter", 10, QFont.Bold))
+        pl = QVBoxLayout(pwd_box)
+        pl.setSpacing(10)
         
         self.pwd_input = QLineEdit()
         self.pwd_input.setPlaceholderText("Ingresa la contraseña")
@@ -101,35 +143,37 @@ class SecurityWidget(BaseOperationWidget):
         self.pwd_confirm.setPlaceholderText("Confirma la contraseña")
         self.pwd_confirm.setEchoMode(QLineEdit.Password)
         
-        # Toggle visibilidad
-        self.show_pwd = QCheckBox("Mostrar contraseña")
+        self.show_pwd = QCheckBox("Mostrar")
         self.show_pwd.stateChanged.connect(self.toggle_pwd_visibility)
         
-        pwd_layout.addWidget(self.pwd_input)
-        pwd_layout.addWidget(self.pwd_confirm)
-        pwd_layout.addWidget(self.show_pwd)
-        pwd_group.setLayout(pwd_layout)
-        self.config_layout.addWidget(pwd_group)
+        pl.addWidget(self.pwd_input)
+        pl.addWidget(self.pwd_confirm)
+        pl.addWidget(self.show_pwd)
+        options_layout.addWidget(pwd_box, 1)
+        
+        self.config_layout.addLayout(options_layout)
         
         # --- Área de Permisos (Solo Encriptar) ---
-        self.perm_group = QGroupBox("Permisos Permitidos")
-        perm_layout = QVBoxLayout()
+        self.perm_box = QGroupBox("Permisos Permitidos")
+        self.perm_box.setFont(QFont("Inter", 10, QFont.Bold))
+        perml = QGridLayout(self.perm_box)
+        perml.setSpacing(10)
         
         self.chk_print = QCheckBox("Impresión")
         self.chk_print.setChecked(True)
-        self.chk_copy = QCheckBox("Copiar texto/imágenes")
+        self.chk_copy = QCheckBox("Copiar contenido")
         self.chk_copy.setChecked(True)
-        self.chk_modify = QCheckBox("Modificar contenido")
+        self.chk_modify = QCheckBox("Modificar")
         self.chk_modify.setChecked(False)
-        self.chk_notes = QCheckBox("Agregar notas/formularios")
+        self.chk_notes = QCheckBox("Anotaciones")
         self.chk_notes.setChecked(True)
         
-        perm_layout.addWidget(self.chk_print)
-        perm_layout.addWidget(self.chk_copy)
-        perm_layout.addWidget(self.chk_modify)
-        perm_layout.addWidget(self.chk_notes)
-        self.perm_group.setLayout(perm_layout)
-        self.config_layout.addWidget(self.perm_group)
+        perml.addWidget(self.chk_print, 0, 0)
+        perml.addWidget(self.chk_copy, 0, 1)
+        perml.addWidget(self.chk_modify, 1, 0)
+        perml.addWidget(self.chk_notes, 1, 1)
+        
+        self.config_layout.addWidget(self.perm_box)
         
     def select_file(self):
         file, _ = QFileDialog.getOpenFileName(self, "Seleccionar PDF", "", "PDF (*.pdf)")

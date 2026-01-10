@@ -67,23 +67,68 @@ class SplitWidget(BaseOperationWidget):
         self.setup_ui()
     
     def setup_ui(self):
-        """Configura la interfaz"""
-        # Selección de archivo
-        btn = QPushButton("📄 Seleccionar PDF")
-        btn.clicked.connect(self.select_file)
-        self.config_layout.addWidget(btn)
+        """Configura la interfaz - Look Premium"""
+        # Cambiar icono de la base
+        icon = IconHelper.get_icon("scissors", color="#FFFFFF")
+        if not icon.isNull():
+            self.icon_lbl.setPixmap(icon.pixmap(36, 36))
+            
+        # Selección de archivo - Dropzone simple
+        drop_area = QFrame()
+        drop_area.setObjectName("glassContainer")
+        drop_area.setMinimumHeight(120)
+        drop_area.setStyleSheet("""
+            QFrame {
+                border: 2px dashed {{BORDER}};
+                background-color: {{HOVER}};
+            }
+            QFrame:hover {
+                border-color: {{ACCENT}};
+            }
+        """)
         
-        self.file_label = QLabel("Ningún archivo seleccionado")
-        self.file_label.setStyleSheet("color: #6b7280; margin-bottom: 16px;")
-        self.config_layout.addWidget(self.file_label)
+        dal = QVBoxLayout(drop_area)
+        dal.setAlignment(Qt.AlignCenter)
+        
+        self.file_label = QLabel("Arrastra tu PDF aquí o haz clic para seleccionar")
+        self.file_label.setFont(QFont("Inter", 11))
+        self.file_label.setStyleSheet("color: {{TEXT_SECONDARY}};")
+        dal.addWidget(self.file_label)
+        
+        btn = QPushButton("Seleccionar PDF")
+        btn.setCursor(Qt.PointingHandCursor)
+        btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: {{ACCENT}};
+                border: 1px solid {{ACCENT}};
+                border-radius: 8px;
+                padding: 6px 16px;
+                font-weight: 600;
+            }
+            QPushButton:hover {
+                background-color: {{ACCENT}};
+                color: {{ACCENT_TEXT}};
+            }
+        """)
+        btn.clicked.connect(self.select_file)
+        dal.addWidget(btn, 0, Qt.AlignCenter)
+        
+        self.config_layout.addWidget(drop_area)
+        
+        # Opciones en Horizontal para mejor uso de espacio
+        options_layout = QHBoxLayout()
+        options_layout.setSpacing(20)
         
         # Modos de división
-        mode_group = QGroupBox("Modo de División")
-        mode_layout = QVBoxLayout(mode_group)
+        mode_box = QGroupBox("Opciones de División")
+        mode_box.setFont(QFont("Inter", 10, QFont.Bold))
+        ml = QVBoxLayout(mode_box)
+        ml.setSpacing(12)
         
         self.mode_group = QButtonGroup()
-        self.range_radio = QRadioButton("Por Rango (ej: páginas 5-10)")
-        self.pages_radio = QRadioButton("Páginas Específicas (ej: 1,3,5-8)")
+        self.range_radio = QRadioButton("Por Rango (ej: 5-10)")
+        self.pages_radio = QRadioButton("Páginas (ej: 1,3,5-8)")
         self.every_radio = QRadioButton("Cada N páginas")
         self.range_radio.setChecked(True)
         
@@ -91,29 +136,37 @@ class SplitWidget(BaseOperationWidget):
         self.mode_group.addButton(self.pages_radio, 1)
         self.mode_group.addButton(self.every_radio, 2)
         
-        mode_layout.addWidget(self.range_radio)
-        mode_layout.addWidget(self.pages_radio)
-        mode_layout.addWidget(self.every_radio)
+        ml.addWidget(self.range_radio)
+        ml.addWidget(self.pages_radio)
+        ml.addWidget(self.every_radio)
         
-        self.config_layout.addWidget(mode_group)
+        options_layout.addWidget(mode_box, 1)
         
-        # Campos de configuración
+        # Campos de configuración - Dynamic stack
+        config_box = QGroupBox("Parámetros")
+        config_box.setFont(QFont("Inter", 10, QFont.Bold))
+        cl = QVBoxLayout(config_box)
+        cl.setSpacing(10)
+        
+        hl_range = QHBoxLayout()
         self.range_start = QLineEdit()
-        self.range_start.setPlaceholderText("Página inicial")
+        self.range_start.setPlaceholderText("Inicio")
         self.range_end = QLineEdit()
-        self.range_end.setPlaceholderText("Página final")
+        self.range_end.setPlaceholderText("Fin")
+        hl_range.addWidget(self.range_start)
+        hl_range.addWidget(self.range_end)
+        cl.addLayout(hl_range)
         
         self.pages_spec = QLineEdit()
-        self.pages_spec.setPlaceholderText("Ej: 1,3,5-8,12")
+        self.pages_spec.setPlaceholderText("Ej: 1, 3, 5-8")
+        cl.addWidget(self.pages_spec)
         
         self.every_n = QLineEdit()
-        self.every_n.setPlaceholderText("Número de páginas")
+        self.every_n.setPlaceholderText("Ej: 1")
+        cl.addWidget(self.every_n)
         
-        self.config_layout.addWidget(QLabel("Configuración:"))
-        self.config_layout.addWidget(self.range_start)
-        self.config_layout.addWidget(self.range_end)
-        self.config_layout.addWidget(self.pages_spec)
-        self.config_layout.addWidget(self.every_n)
+        options_layout.addWidget(config_box, 1)
+        self.config_layout.addLayout(options_layout)
     
     def select_file(self):
         """Seleccionar archivo PDF"""

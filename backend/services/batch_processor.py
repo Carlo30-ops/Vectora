@@ -5,8 +5,19 @@ Aplica una operación a múltiples archivos de manera robusta y centralizada
 from typing import List, Callable, Optional, Dict, Any
 from pathlib import Path
 import traceback
+from dataclasses import dataclass, field
 from logging import Logger
 from utils.logger import get_logger
+
+@dataclass
+class BatchResult:
+    """Estructura de datos para el resultado de un lote"""
+    success: bool
+    total_files: int
+    successful_count: int
+    failed_count: int
+    results: List[Dict[str, Any]] = field(default_factory=list)
+    message: str = ""
 
 class BatchProcessor:
     """Servicio para procesamiento por lotes de PDFs"""
@@ -22,11 +33,11 @@ class BatchProcessor:
     def process_batch(
         self,
         file_paths: List[str],
-        operation_func: Callable,
+        operation_func: Callable[..., Dict[str, Any]],
         operation_config: Dict[str, Any],
         output_dir: str,
         progress_callback: Optional[Callable[[int, str, Dict], None]] = None
-    ) -> dict:
+    ) -> BatchResult:
         """
         Procesa múltiples archivos con una operación específica
         
@@ -36,6 +47,9 @@ class BatchProcessor:
             operation_config: Argumentos extra para la operación
             output_dir: Directorio de salida
             progress_callback: Función para reportar progreso (percent, message, result)
+            
+        Returns:
+            BatchResult object
         """
         if not file_paths:
             self.logger.warning("Intento de procesamiento por lotes sin archivos")
@@ -63,7 +77,8 @@ class BatchProcessor:
                 'file_path': file_path,
                 'success': False,
                 'output_path': None,
-                'error': None
+                'error': None,
+                'details': None
             }
             
             # Reportar inicio de archivo
@@ -74,14 +89,11 @@ class BatchProcessor:
 
             try:
                 # Generar ruta de salida automática
-                # Se asume que operation_config NO debe contener 'output_path' duplicado
-                # La lógica de batch decide el nombre de salida para evitar colisiones
                 output_path = str(Path(output_dir) / f"processed_{file_name}")
                 
                 self.logger.debug(f"Procesando archivo {i+1}/{total_files}: {file_name}")
                 
                 # Ejecutar operación
-                # Se asume que la firma es func(input, output, **kwargs)
                 operation_result = operation_func(
                     file_path,
                     output_path,
@@ -111,14 +123,14 @@ class BatchProcessor:
         summary_msg = f'Completado: {successful} exitosos, {failed} fallidos de {total_files} archivos'
         self.logger.info(summary_msg)
         
-        return {
-            'success': failed == 0,
-            'total_files': total_files,
-            'successful': successful,
-            'failed': failed,
-            'results': results,
-            'message': summary_msg
-        }
+        return BatchResult(
+            success=failed == 0,
+            total_files=total_files,
+            successful_count=successful,
+            failed_count=failed,
+            results=results,
+            message=summary_msg
+        )
     
     def validate_batch_files(
         self,

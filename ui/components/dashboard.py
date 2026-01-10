@@ -252,19 +252,18 @@ class Dashboard(QWidget):
     def create_card(self, pid, title, icon_name, desc):
         card = AnimatedCard()
         card.setObjectName("dashboardCard")
-        # Estilos específicos para cards del dashboard se pueden poner aquí o en QSS
-        # Usamos estilos inline para asegurar la personalización sin conflictos globales
+        # Estilos actualizados para look Premium
         card.setStyleSheet("""
             QPushButton {
-                background-color: #ffffff;
-                border: 1px solid #e5e7eb;
-                border-radius: 16px;
+                background-color: {{SURFACE_BG}};
+                border: 1px solid {{BORDER}};
+                border-radius: 20px;
                 padding: 24px;
                 text-align: left;
             }
             QPushButton:hover {
-                background-color: #f9fafb;
-                border: 1px solid #000000;
+                border: 1px solid {{ACCENT}};
+                background-color: {{HOVER}};
             }
         """)
         
@@ -272,19 +271,24 @@ class Dashboard(QWidget):
         l.setSpacing(15)
         l.setContentsMargins(0,0,0,0)
         
-        # Header con icono y flecha (invisible por defecto en hover quizas?)
+        # Header con icono y flecha
         hl = QHBoxLayout()
         
-        # Icon box
-        ibox = QLabel()
+        # Icon box - Glass effect
+        ibox = QFrame()
         ibox.setFixedSize(50, 50)
-        ibox.setStyleSheet("background-color: #000000; border-radius: 12px;")
-        ibox.setAlignment(Qt.AlignCenter)
+        ibox.setObjectName("glassContainer")
+        ibox.setStyleSheet(f"background-color: #000000; border-radius: 12px;")
         
-        # White icon on black background for maximum contrast
-        icon = IconHelper.get_icon(icon_name, color="#ffffff")
+        il = QVBoxLayout(ibox)
+        il.setContentsMargins(0,0,0,0)
+        il.setAlignment(Qt.AlignCenter)
+        
+        icon_lbl = QLabel()
+        icon = IconHelper.get_icon(icon_name, color="#FFFFFF")
         if not icon.isNull():
-             ibox.setPixmap(icon.pixmap(24, 24))
+             icon_lbl.setPixmap(icon.pixmap(24, 24))
+        il.addWidget(icon_lbl)
         
         hl.addWidget(ibox)
         hl.addStretch()
@@ -292,17 +296,16 @@ class Dashboard(QWidget):
         
         # Textos
         vl = QVBoxLayout()
-        vl.setSpacing(4)
+        vl.setSpacing(6)
         
         t = QLabel(title)
-        t.setFont(QFont("Segoe UI", 16, QFont.Bold))
-        t.setStyleSheet("color: #111827; background: transparent; border: none;")
-        t.setWordWrap(True)
+        t.setFont(QFont("Inter", 16, QFont.Bold))
+        t.setStyleSheet("color: {{TEXT_PRIMARY}}; background: transparent; border: none;")
         vl.addWidget(t)
         
         d = QLabel(desc)
-        d.setFont(QFont("Segoe UI", 11))
-        d.setStyleSheet("color: #6b7280; background: transparent; border: none;")
+        d.setFont(QFont("Inter", 11))
+        d.setStyleSheet("color: {{TEXT_SECONDARY}}; background: transparent; border: none;")
         d.setWordWrap(True)
         vl.addWidget(d)
         

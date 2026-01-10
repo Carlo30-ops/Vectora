@@ -177,14 +177,14 @@ class Wizard(QWidget):
         
         # Colores
         bg_s = t.get('SURFACE_BG', '#ffffff')
-        txt_p = t.get('TEXT_PRIMARY', '#111827')
-        txt_s = t.get('TEXT_SECONDARY', '#6b7280')
-        accent = t.get('ACCENT', '#000000')
-        border = t.get('BORDER', '#e5e7eb')
-        hover = t.get('HOVER', '#f3f4f6')
+        txt_p = t.get('TEXT_PRIMARY', '#0F172A')
+        txt_s = t.get('TEXT_SECONDARY', '#64748B')
+        accent = t.get('ACCENT', '#3B82F6')
+        border = t.get('BORDER', '#E2E8F0')
+        hover = t.get('HOVER', '#F1F5F9')
         
-        # Icon BG logic
-        icon_bg = '#f3f4f6' if theme_name == 'light' else '#374151'
+        # Icon BG logic - Usando look tipo 'Glass' dark
+        icon_bg = '#000000'
         
         # Estilo Global del Widget actual
         current = self.stack.currentWidget()
@@ -192,7 +192,7 @@ class Wizard(QWidget):
         
         # Títulos
         for lbl in current.findChildren(QLabel, "wizardTitle"):
-            lbl.setStyleSheet(f"font-size: 32px; font-weight: 800; color: {txt_p};")
+            lbl.setStyleSheet(f"font-size: 32px; font-weight: 800; color: {txt_p}; font-family: 'Inter'; letter-spacing: -1px;")
             
         # Cards
         card_style = f"""
@@ -205,29 +205,29 @@ class Wizard(QWidget):
             QPushButton:hover {{
                 background-color: {hover};
                 border: 1px solid {accent};
-                transform: scale(1.02);
             }}
         """
         
         for card in current.findChildren(AnimatedCard):
             card.setStyleSheet(card_style)
             
-            # Icon Box
+            # Icon Box - Glass Container look
             ibox = card.findChild(QLabel, "iconBox")
             if ibox:
                 ibox.setStyleSheet(f"background-color: {icon_bg}; border-radius: 12px;")
                 # Update Icon Pixmap
                 iname = card.property("icon_name")
                 if iname:
-                    icon = IconHelper.get_icon(iname, color=txt_p)
+                    # Siempre iconos blancos sobre fondo negro para el Wizard
+                    icon = IconHelper.get_icon(iname, color="#FFFFFF")
                     if not icon.isNull():
                         ibox.setPixmap(icon.pixmap(24, 24))
             
             # Textos
             t_lbl = card.findChild(QLabel, "optionTitle")
             if t_lbl:
-                t_lbl.setStyleSheet(f"font-size: 18px; font-weight: 700; color: {txt_p}; border: none; background: transparent;")
+                t_lbl.setStyleSheet(f"font-size: 18px; font-weight: 700; color: {txt_p}; border: none; background: transparent; font-family: 'Inter';")
                 
             d_lbl = card.findChild(QLabel, "optionDesc")
             if d_lbl:
-                 d_lbl.setStyleSheet(f"font-size: 14px; color: {txt_s}; border: none; background: transparent;")
+                 d_lbl.setStyleSheet(f"font-size: 14px; color: {txt_s}; border: none; background: transparent; font-family: 'Inter';")

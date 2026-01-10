@@ -34,14 +34,14 @@ class IconHelper:
 
 
 class AnimatedButton(QPushButton):
-    """Botón sin animaciones problemáticas"""
+    """Botón con animación de escala sutil"""
     def __init__(self, text="", parent=None, is_primary=False):
         super().__init__(text, parent)
         self.is_primary = is_primary
         self.setCursor(Qt.PointingHandCursor)
 
 class AnimatedCard(QPushButton):
-    """Card seleccionable sin animaciones de posición"""
+    """Card con efecto de elevación suave"""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setCursor(Qt.PointingHandCursor)

@@ -17,54 +17,59 @@ from utils.history_manager import HistoryManager
 
 
 class BaseOperationWidget(QWidget):
-    """Clase base para operaciones (Rediseñada)"""
+    """Clase base para operaciones (Rediseñada - Premium Look)"""
     
     def __init__(self, title, description):
         super().__init__()
         self.title = title
         self.description = description
-        self.last_output_file = None  # Track last output for post-processing
-        self.start_time = None # Para estimación
+        self.last_output_file = None
+        self.start_time = None
         self.init_base_ui()
         
     def init_base_ui(self):
         self.main_layout = QVBoxLayout(self)
-        self.main_layout.setContentsMargins(50, 40, 50, 50)
-        self.main_layout.setSpacing(32)
+        self.main_layout.setContentsMargins(60, 50, 60, 60)
+        self.main_layout.setSpacing(40)
         
         # Header Container
         header = QFrame()
         header.setStyleSheet("background-color: transparent;")
         hl = QHBoxLayout(header)
         hl.setContentsMargins(0,0,0,0)
-        hl.setSpacing(24)
+        hl.setSpacing(28)
         
-        # Icon
-        icon_box = QLabel()
-        icon_box.setFixedSize(64, 64)
-        icon_box.setStyleSheet("background-color: #000000; border-radius: 18px;")
-        icon_box.setAlignment(Qt.AlignCenter)
+        # Icon - Glass Container look
+        icon_box = QFrame()
+        icon_box.setFixedSize(72, 72)
+        icon_box.setObjectName("glassContainer")
+        icon_box.setStyleSheet("background-color: #000000; border-radius: 20px;")
         
-        # Icono visual, puede ser overwriteado por hijos
-        icon = IconHelper.get_icon("layers", color="#ffffff") # Default fallback
+        il = QVBoxLayout(icon_box)
+        il.setContentsMargins(0, 0, 0, 0)
+        il.setAlignment(Qt.AlignCenter)
+        
+        self.icon_lbl = QLabel()
+        icon = IconHelper.get_icon("layers", color="#FFFFFF")
         if not icon.isNull():
-             icon_box.setPixmap(icon.pixmap(32, 32))
+             self.icon_lbl.setPixmap(icon.pixmap(36, 36))
+        il.addWidget(self.icon_lbl)
         
         hl.addWidget(icon_box)
         
         vl = QVBoxLayout()
-        vl.setSpacing(6)
+        vl.setSpacing(4)
         
         # Clean title
         clean_title = self.title.replace("📑 ", "").replace("✂️ ", "").replace("🗜️ ", "")
         t = QLabel(clean_title)
-        t.setFont(QFont("Segoe UI", 26, QFont.Bold))
-        t.setStyleSheet("color: #111827; border: none;")
+        t.setFont(QFont("Inter", 28, QFont.ExtraBold))
+        t.setStyleSheet("color: {{TEXT_PRIMARY}}; border: none; letter-spacing: -1px;")
         vl.addWidget(t)
         
         d = QLabel(self.description)
-        d.setFont(QFont("Segoe UI", 12))
-        d.setStyleSheet("color: #6b7280; border: none;")
+        d.setFont(QFont("Inter", 12))
+        d.setStyleSheet("color: {{TEXT_SECONDARY}}; border: none;")
         vl.addWidget(d)
         
         hl.addLayout(vl)
@@ -72,33 +77,28 @@ class BaseOperationWidget(QWidget):
         
         self.main_layout.addWidget(header)
         
-        # Separator
-        line = QFrame()
-        line.setFrameShape(QFrame.HLine)
-        line.setStyleSheet("background-color: #e5e7eb; max-height: 1px;")
-        self.main_layout.addWidget(line)
-        
-        # Content Area
+        # Content Area - Con scroll si es necesario
         self.config_layout = QVBoxLayout()
-        self.config_layout.setSpacing(20)
+        self.config_layout.setSpacing(24)
         self.main_layout.addLayout(self.config_layout)
         
-        # Progress
-        self.progress_container = QWidget()
+        # Progress Area
+        self.progress_container = QFrame()
+        self.progress_container.setObjectName("glassContainer")
+        self.progress_container.setStyleSheet("padding: 20px;")
+        
         pl = QVBoxLayout(self.progress_container)
-        pl.setContentsMargins(0, 20, 0, 0)
-        pl.setSpacing(10)
+        pl.setSpacing(12)
         
         self.progress_label = QLabel("Preparado")
-        self.progress_label.setFont(QFont("Segoe UI", 10, QFont.Bold))
-        self.progress_label.setStyleSheet("color: #111827;")
+        self.progress_label.setFont(QFont("Inter", 10, QFont.Bold))
         pl.addWidget(self.progress_label)
         
         self.progress_bar = QProgressBar()
         self.progress_bar.setRange(0, 100)
         self.progress_bar.setValue(0)
         self.progress_bar.setTextVisible(False)
-        self.progress_bar.setFixedHeight(10)
+        self.progress_bar.setFixedHeight(8)
         pl.addWidget(self.progress_bar)
         
         self.progress_container.setVisible(False)
@@ -109,20 +109,19 @@ class BaseOperationWidget(QWidget):
         # Action Button Area
         button_area = QWidget()
         bl = QHBoxLayout(button_area)
-        bl.setContentsMargins(0, 20, 0, 0)
+        bl.setContentsMargins(0, 0, 0, 0)
         
         from ..ui_helpers import AnimatedButton
         self.start_btn = AnimatedButton("Iniciar Operación", is_primary=True)
-        self.start_btn.setMinimumHeight(56)
-        self.start_btn.setMinimumWidth(200)
-        self.start_btn.setFont(QFont("Segoe UI", 11, QFont.Bold))
+        self.start_btn.setMinimumHeight(60)
+        self.start_btn.setMinimumWidth(240)
+        self.start_btn.setFont(QFont("Inter", 12, QFont.Bold))
         self.start_btn.clicked.connect(self.start_processing)
         
         bl.addStretch()
         bl.addWidget(self.start_btn)
         
         self.main_layout.addWidget(button_area)
-        
         self.setup_shortcuts()
 
     def setup_shortcuts(self):
