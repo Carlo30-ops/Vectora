@@ -2,79 +2,81 @@
 Servicio de combinación de PDFs
 Combina múltiples archivos PDF en uno solo preservando el orden
 """
-from PyPDF2 import PdfMerger
+import pikepdf
 from pathlib import Path
 from typing import List, Callable, Optional
-
+from logging import Logger
+from utils.logger import get_logger
 
 class PDFMerger:
     """Servicio para combinar múltiples PDFs en uno solo"""
+
+    def __init__(self, logger: Optional[Logger] = None):
+        """
+        Inicializa el servicio de combinación
+        Args:
+            logger: Logger personalizado (opcional)
+        """
+        self.logger = logger or get_logger(__name__)
     
-    @staticmethod
     def merge_pdfs(
+        self,
         input_paths: List[str],
         output_path: str,
         progress_callback: Optional[Callable[[int], None]] = None
     ) -> dict:
         """
-        Combina múltiples PDFs en uno solo
-        
-        Args:
-            input_paths: Lista de rutas de archivos PDF en el orden deseado
-            output_path: Ruta del archivo PDF resultante
-            progress_callback: Función para reportar progreso (0-100)
-            
-        Returns:
-            Diccionario con información del resultado:
-            {
-                'success': bool,
-                'output_path': str,
-                'total_files': int,
-                'message': str
-            }
-            
-        Raises:
-            ValueError: Si hay menos de 2 archivos
-            FileNotFoundError: Si algún archivo no existe
-            Exception: Si hay error al procesar algún PDF
+        Combina múltiples PDFs en uno solo usando pikepdf (High Performance)
         """
-        # Validación: mínimo 2 archivos
+        self.logger.info(f"Iniciando combinación de {len(input_paths)} archivos PDF")
+        
         if len(input_paths) < 2:
+            self.logger.error("Validación fallida: se necesitan al menos 2 archivos")
             raise ValueError("Se necesitan al menos 2 archivos PDF para combinar")
         
-        # Validación: todos los archivos existen
+        # Validar existencia
         for path in input_paths:
             if not Path(path).exists():
+                self.logger.error(f"Archivo no encontrado: {path}")
                 raise FileNotFoundError(f"El archivo no existe: {path}")
         
-        merger = PdfMerger()
-        total_files = len(input_paths)
-        
         try:
-            # Procesar cada archivo
-            for i, pdf_path in enumerate(input_paths):
-                try:
-                    merger.append(pdf_path)
-                    
-                    # Reportar progreso
-                    if progress_callback:
-                        progress = int((i + 1) / total_files * 100)
-                        progress_callback(progress)
+            # Crear nuevo PDF destino
+            with pikepdf.new() as merged_pdf:
+                total_files = len(input_paths)
+                
+                for i, pdf_path in enumerate(input_paths):
+                    try:
+                        file_name = Path(pdf_path).name
+                        self.logger.debug(f"Procesando archivo {i+1}/{total_files}: {file_name}")
                         
-                except Exception as e:
-                    raise Exception(f"Error al procesar {Path(pdf_path).name}: {str(e)}")
+                        # Abrir PDF origen y copiar páginas
+                        with pikepdf.open(pdf_path) as src_pdf:
+                            merged_pdf.pages.extend(src_pdf.pages)
+                        
+                        if progress_callback:
+                            progress = int((i + 1) / total_files * 100)
+                            progress_callback(progress)
+                            
+                    except Exception as e:
+                        msg = f"Error al procesar {Path(pdf_path).name}: {str(e)}"
+                        self.logger.error(msg, exc_info=True)
+                        raise Exception(msg)
+                
+                # Guardar el resultado
+                self.logger.info(f"Guardando archivo combinado: {output_path}")
+                merged_pdf.save(output_path)
             
-            # Guardar el resultado
-            merger.write(output_path)
-            merger.close()
+            output_size = Path(output_path).stat().st_size / (1024 * 1024)
+            self.logger.info(f"Combinación completada exitosamente - Tamaño: {output_size:.2f} MB")
             
             return {
-                'success': True,
-                'output_path': output_path,
-                'total_files': total_files,
-                'message': f'Se combinaron {total_files} archivos exitosamente'
+                "success": True,
+                "output_path": output_path,
+                "total_files": total_files,
+                "message": f"Se combinaron {total_files} archivos exitosamente"
             }
             
         except Exception as e:
-            merger.close()
+            self.logger.error(f"Error durante la combinación: {e}", exc_info=True)
             raise e

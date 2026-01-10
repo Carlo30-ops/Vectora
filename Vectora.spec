@@ -1,37 +1,53 @@
 # -*- mode: python ; coding: utf-8 -*-
+# Vectora v5.0.0 - PyInstaller Spec File
+
+import os
+from pathlib import Path
 
 block_cipher = None
+
+# Determinar qué carpetas incluir (solo las que existen)
+datas_list = []
+
+# Carpetas principales (siempre incluir)
+for folder in ['config', 'ui', 'backend', 'utils']:
+    if os.path.exists(folder):
+        datas_list.append((folder, folder))
+
+# Carpetas opcionales
+optional_folders = ['assets', 'icons']
+for folder in optional_folders:
+    if os.path.exists(folder):
+        datas_list.append((folder, folder))
+
+# Archivo .env (opcional)
+if os.path.exists('.env'):
+    datas_list.append(('.env', '.'))
 
 a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[
-        ('assets', 'assets'),
-        ('icons', 'icons'),
-        ('config', 'config'),
-        ('ui', 'ui'),
-        ('backend', 'backend'),
-        ('utils', 'utils'),
-        ('libs', 'libs'),
-        ('.env', '.')
-    ],
+    datas=datas_list,
     hiddenimports=[
         'pikepdf._cpphelpers',
         'PySide6.QtSvg',
         'PySide6.QtCore',
         'PySide6.QtGui',
-        'PySide6.QtWidgets'
+        'PySide6.QtWidgets',
+        'logging.handlers',
+        'utils.logger',
     ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=['tkinter', 'matplotlib'],  # Excluir módulos no necesarios
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
     cipher=block_cipher,
     noarchive=False,
 )
+
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(
@@ -44,12 +60,13 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=False,
+    console=False,  # Sin consola para app de escritorio
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
-    icon=None, # Podríamos añadir icono .ico aquí si tuviéramos
+    icon='assets/vectora.ico',  # Icono oficial
 )
+
 coll = COLLECT(
     exe,
     a.binaries,
@@ -60,3 +77,4 @@ coll = COLLECT(
     upx_exclude=[],
     name='Vectora',
 )
+

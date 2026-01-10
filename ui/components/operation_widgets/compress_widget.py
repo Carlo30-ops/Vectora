@@ -28,7 +28,10 @@ class CompressWorker(QThread):
     
     def run(self):
         try:
-            result = PDFCompressor.compress_pdf(
+            # Instanciar servicio
+            compressor = PDFCompressor()
+            
+            result = compressor.compress_pdf(
                 self.input_file,
                 self.output_file,
                 self.quality_level,

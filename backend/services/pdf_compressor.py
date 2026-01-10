@@ -6,7 +6,8 @@ import pikepdf
 from pathlib import Path
 from typing import Callable, Optional
 import os
-
+from logging import Logger
+from utils.logger import get_logger
 
 class PDFCompressor:
     """Servicio para comprimir archivos PDF"""
@@ -19,17 +20,17 @@ class PDFCompressor:
         'extreme': {'quality': 30, 'label': 'Extrema', 'reduction': '~80%'}
     }
     
+    def __init__(self, logger: Optional[Logger] = None):
+        """
+        Inicializa el servicio de compresión
+        Args:
+            logger: Logger personalizado (opcional)
+        """
+        self.logger = logger or get_logger(__name__)
+
     @staticmethod
     def get_compression_level_from_value(value: int) -> str:
-        """
-        Determina el nivel de compresión según el valor del slider
-        
-        Args:
-            value: Valor del slider (0-100)
-            
-        Returns:
-            Clave del nivel ('low', 'medium', 'high', 'extreme')
-        """
+        """Determina el nivel de compresión según el valor del slider"""
         if value <= 25:
             return 'low'
         elif value <= 50:
@@ -39,35 +40,18 @@ class PDFCompressor:
         else:
             return 'extreme'
     
-    @staticmethod
     def compress_pdf(
+        self,
         input_path: str,
         output_path: str,
         quality_level: str = 'medium',
         progress_callback: Optional[Callable[[int], None]] = None
     ) -> dict:
-        """
-        Comprime un PDF reduciendo la calidad de imágenes y optimizando streams
-        
-        Args:
-            input_path: Ruta del PDF original
-            output_path: Ruta del PDF comprimido
-            quality_level: Nivel de compresión ('low', 'medium', 'high', 'extreme')
-            progress_callback: Función para reportar progreso
-            
-        Returns:
-            Diccionario con información del resultado:
-            {
-                'success': bool,
-                'output_path': str,
-                'original_size_mb': float,
-                'compressed_size_mb': float,
-                'savings_percent': float,
-                'message': str
-            }
-        """
+        """Comprime un PDF reduciendo la calidad de imágenes y optimizando streams"""
         if quality_level not in PDFCompressor.COMPRESSION_LEVELS:
             raise ValueError(f"Nivel de compresión inválido: {quality_level}")
+        
+        self.logger.info(f"Comprimiendo PDF: {input_path} (Nivel: {quality_level})")
         
         # Obtener tamaño original
         original_size = os.path.getsize(input_path)
@@ -84,15 +68,11 @@ class PDFCompressor:
                 
                 # Procesar cada página (para mostrar progreso)
                 for i, page in enumerate(pdf.pages):
-                    # Aquí se podría agregar procesamiento adicional de imágenes
-                    # por ahora solo reportamos progreso
                     if progress_callback and total_pages > 0:
                         progress = int(10 + (i + 1) / total_pages * 80)
                         progress_callback(progress)
                 
                 # Guardar con compresión
-                # compress_streams=True optimiza los streams del PDF
-                # object_stream_mode reduce el tamaño reorganizando objetos
                 pdf.save(
                     output_path,
                     compress_streams=True,
@@ -108,6 +88,8 @@ class PDFCompressor:
             compressed_size_mb = compressed_size / (1024 * 1024)
             savings_percent = ((original_size - compressed_size) / original_size) * 100
             
+            self.logger.info(f"Compresión exitosa: {savings_percent:.1f}% ahorrado")
+            
             return {
                 'success': True,
                 'output_path': output_path,
@@ -118,4 +100,5 @@ class PDFCompressor:
             }
             
         except Exception as e:
+            self.logger.error(f"Error comprimiendo PDF: {e}", exc_info=True)
             raise Exception(f"Error al comprimir PDF: {str(e)}")

@@ -15,6 +15,11 @@ from .base_operation import BaseOperationWidget
 from backend.services.pdf_merger import PDFMerger
 from utils.file_handler import FileHandler
 from config.settings import settings
+from utils.logger import get_logger
+
+# Configurar logger para este módulo
+logger = get_logger(__name__)
+
 
 
 class DragDropListWidget(QListWidget):
@@ -151,6 +156,9 @@ class MergeWidget(BaseOperationWidget):
     
     def on_files_dropped(self, files):
         """Maneja archivos agregados (por drag-drop o diálogo)"""
+        logger.info(f"Archivos recibidos: {len(files)}")
+        logger.debug(f"Archivos: {[Path(f).name for f in files]}")
+        
         added = 0
         for file in files:
             if file not in self.files:
@@ -159,20 +167,28 @@ class MergeWidget(BaseOperationWidget):
                 filename = file.split('/')[-1].split('\\')[-1]
                 self.file_list.addItem(f"📄 {filename}")
                 added += 1
+                logger.debug(f"Archivo agregado: {filename}")
         
         if added > 0:
             total = len(self.files)
             self.info_label.setText(f"{total} archivo(s) seleccionado(s) - Arrastra para reordenar")
+            logger.info(f"Total de archivos en lista: {total} ({added} nuevos)")
+
     
     def start_processing(self):
         """Inicia la combinación de PDFs"""
+        logger.info("Iniciando procesamiento de combinación")
+        
         if len(self.files) < 2:
+            logger.warning("Validación fallida: menos de 2 archivos seleccionados")
             self.show_error("Necesitas al menos 2 archivos PDF para combinar")
             return
         
         # Preguntar dónde guardar el archivo
         output_dir = settings.get_output_directory()
         default_name = output_dir / "combined.pdf"
+        
+        logger.debug(f"Abriendo diálogo de guardado - Directorio: {output_dir}")
         
         output_file, _ = QFileDialog.getSaveFileName(
             self,
@@ -183,14 +199,17 @@ class MergeWidget(BaseOperationWidget):
         
         if not output_file:
             # Usuario canceló
+            logger.info("Operación cancelada por el usuario")
             return
         
         self.output_file = output_file
+        logger.info(f"Archivo de salida seleccionado: {output_file}")
         
         # Crear y ejecutar worker
         self.set_processing_state(True)
         self.update_progress(0, "Iniciando combinación...")
         
+        logger.info("Iniciando worker thread para combinación")
         self.worker = MergeWorker(self.files, self.output_file)
         self.worker.progress_updated.connect(self.update_progress)
         self.worker.finished.connect(self.on_success)
@@ -199,6 +218,9 @@ class MergeWidget(BaseOperationWidget):
     
     def on_success(self, result):
         """Maneja el resultado exitoso"""
+        logger.info(f"Combinación exitosa: {result.get('message')}")
+        logger.info(f"Archivo guardado en: {result.get('output_path')}")
+        
         self.set_processing_state(False)
         self.show_success(f"¡PDFs combinados exitosamente!")
         
@@ -217,14 +239,18 @@ class MergeWidget(BaseOperationWidget):
         
         clicked = msg.clickedButton()
         if clicked == open_btn:
+            logger.info("Usuario eligió abrir el archivo")
             self.open_file(self.output_file)
         elif clicked == folder_btn:
+            logger.info("Usuario eligió abrir la carpeta")
             self.open_folder(self.output_file)
     
     def on_error(self, error):
         """Maneja errores"""
+        logger.error(f"Error durante la combinación: {error}")
         self.set_processing_state(False)
         self.show_error(f"Error: {error}")
+
     
     def open_file(self, file_path):
         """Abre el archivo con la aplicación predeterminada"""

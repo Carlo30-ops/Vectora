@@ -26,15 +26,18 @@ class SecurityWorker(QThread):
     
     def run(self):
         try:
+            # Instanciar servicio
+            security = PDFSecurity()
+            
             if self.mode == 'encrypt':
-                result = PDFSecurity.encrypt_pdf(
+                result = security.encrypt_pdf(
                     self.kwargs['input_path'],
                     self.kwargs['output_path'],
                     self.kwargs['password'],
                     self.kwargs['permissions']
                 )
             elif self.mode == 'decrypt':
-                result = PDFSecurity.decrypt_pdf(
+                result = security.decrypt_pdf(
                     self.kwargs['input_path'],
                     self.kwargs['output_path'],
                     self.kwargs['password']

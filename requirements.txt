@@ -1,12 +1,27 @@
-PySide6
-PyPDF2
-pikepdf
-pdf2docx
-docx2pdf
-pdf2image
-Pillow
-pytesseract
-watchdog
-opencv-python
-python-dotenv
-pyinstaller
+# Vectora v5 - Dependencias con Versiones Exactas
+# Generado automaticamente - NO editar manualmente
+
+# === GUI Framework ===
+PySide6==6.10.1
+
+# === PDF Processing ===
+PyPDF2==3.0.1
+pikepdf==10.1.0
+pdf2docx==0.5.8
+docx2pdf==0.1.8
+pdf2image==1.17.0
+PyMuPDF==1.26.7
+
+# === Image Processing ===
+pillow==12.1.0
+opencv-python==4.12.0.88
+
+# === OCR ===
+pytesseract==0.3.13
+
+# === Utilities ===
+python-dotenv==1.2.1
+watchdog==6.0.0
+
+# === Build Tools ===
+pyinstaller==6.17.0

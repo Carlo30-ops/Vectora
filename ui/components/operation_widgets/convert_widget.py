@@ -34,15 +34,18 @@ class ConvertWorker(QThread):
                 self.progress_updated.emit(val)
                 if msg:
                     self.status_updated.emit(msg)
+            
+            # Instanciar servicio
+            converter = PDFConverter()
 
             if self.mode == 'pdf_to_word':
-                result = PDFConverter.pdf_to_word(
+                result = converter.pdf_to_word(
                     self.kwargs['input_path'],
                     self.kwargs['output_path'],
                     progress_callback=progress_callback
                 )
             elif self.mode == 'pdf_to_images':
-                result = PDFConverter.pdf_to_images(
+                result = converter.pdf_to_images(
                     self.kwargs['input_path'],
                     self.kwargs['output_dir'],
                     dpi=self.kwargs['dpi'],
@@ -50,13 +53,13 @@ class ConvertWorker(QThread):
                     progress_callback=lambda v: self.progress_updated.emit(v)
                 )
             elif self.mode == 'images_to_pdf':
-                result = PDFConverter.images_to_pdf(
+                result = converter.images_to_pdf(
                     self.kwargs['image_paths'],
                     self.kwargs['output_path'],
                     progress_callback=lambda v: self.progress_updated.emit(v)
                 )
             elif self.mode == 'word_to_pdf':
-                result = PDFConverter.word_to_pdf(
+                result = converter.word_to_pdf(
                     self.kwargs['input_path'],
                     self.kwargs['output_path'],
                     progress_callback=lambda v: self.progress_updated.emit(v)

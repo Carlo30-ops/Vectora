@@ -1,0 +1,12 @@
+# Tests - Marca archivos a ignorar en Git
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Test PDFs generados
+tests/temp/
+tests/*.pdf

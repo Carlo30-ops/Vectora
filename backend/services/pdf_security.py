@@ -5,39 +5,32 @@ Encriptación, desencriptación y configuración de permisos
 import pikepdf
 from pathlib import Path
 from typing import Optional, Dict
-
+from logging import Logger
+from utils.logger import get_logger
 
 class PDFSecurity:
     """Servicio para gestión de seguridad de PDFs"""
     
-    @staticmethod
+    def __init__(self, logger: Optional[Logger] = None):
+        """
+        Inicializa el servicio de seguridad
+        Args:
+            logger: Logger personalizado (opcional)
+        """
+        self.logger = logger or get_logger(__name__)
+
     def encrypt_pdf(
+        self,
         input_path: str,
         output_path: str,
         password: str,
         permissions: Optional[Dict[str, bool]] = None
     ) -> dict:
-        """
-        Encripta un PDF con contraseña y permisos opcionales
-        
-        Args:
-            input_path: Ruta del PDF original
-            output_path: Ruta del PDF encriptado
-            password: Contraseña para proteger el PDF
-            permissions: Diccionario con permisos (None = todos los permisos):
-                {
-                    'allow_print': bool,
-                    'allow_copy': bool,
-                    'allow_modify': bool,
-                    'allow_annotations': bool
-                }
-                
-        Returns:
-            Diccionario con información del resultado
-        """
+        """Encripta un PDF con contraseña y permisos opcionales"""
         if not password:
             raise ValueError("La contraseña no puede estar vacía")
         
+        self.logger.info(f"Encriptando PDF: {input_path}")
         try:
             with pikepdf.open(input_path) as pdf:
                 # Configurar permisos
@@ -70,31 +63,20 @@ class PDFSecurity:
             }
             
         except Exception as e:
+            self.logger.error(f"Error encriptando PDF: {e}", exc_info=True)
             raise Exception(f"Error al encriptar PDF: {str(e)}")
     
-    @staticmethod
     def decrypt_pdf(
+        self,
         input_path: str,
         output_path: str,
         password: str
     ) -> dict:
-        """
-        Remueve la encriptación de un PDF
-        
-        Args:
-            input_path: Ruta del PDF encriptado
-            output_path: Ruta del PDF desencriptado
-            password: Contraseña del PDF
-            
-        Returns:
-            Diccionario con información del resultado
-            
-        Raises:
-            pikepdf.PasswordError: Si la contraseña es incorrecta
-        """
+        """Remueve la encriptación de un PDF"""
         if not password:
             raise ValueError("La contraseña no puede estar vacía")
         
+        self.logger.info(f"Desencriptando PDF: {input_path}")
         try:
             with pikepdf.open(input_path, password=password) as pdf:
                 # Guardar sin encriptación
@@ -107,29 +89,21 @@ class PDFSecurity:
             }
             
         except pikepdf.PasswordError:
+            self.logger.warning("Intento de desencriptación fallido: Contraseña incorrecta")
             raise Exception("Contraseña incorrecta")
         except Exception as e:
+            self.logger.error(f"Error desencriptando: {e}", exc_info=True)
             raise Exception(f"Error al desencriptar PDF: {str(e)}")
     
-    @staticmethod
     def set_permissions(
+        self,
         input_path: str,
         output_path: str,
         permissions: Dict[str, bool],
         owner_password: Optional[str] = None
     ) -> dict:
-        """
-        Configura permisos específicos sin requerir contraseña de usuario
-        
-        Args:
-            input_path: Ruta del PDF original
-            output_path: Ruta del PDF con permisos
-            permissions: Diccionario con permisos
-            owner_password: Contraseña del propietario (opcional)
-            
-        Returns:
-            Diccionario con información del resultado
-        """
+        """Configura permisos específicos sin requerir contraseña de usuario"""
+        self.logger.info(f"Configurando permisos en: {input_path}")
         try:
             with pikepdf.open(input_path) as pdf:
                 # Si no se proporciona contraseña de propietario, usar una por defecto
@@ -156,28 +130,11 @@ class PDFSecurity:
             }
             
         except Exception as e:
+            self.logger.error(f"Error configurando permisos: {e}", exc_info=True)
             raise Exception(f"Error al configurar permisos: {str(e)}")
     
-    @staticmethod
-    def validate_password_strength(password: str) -> Dict[str, any]:
-        """
-        Valida la fortaleza de una contraseña
-        
-        Args:
-            password: Contraseña a validar
-            
-        Returns:
-            Diccionario con información de la validación:
-            {
-                'is_strong': bool,
-                'length': int,
-                'has_upper': bool,
-                'has_lower': bool,
-                'has_digit': bool,
-                'has_special': bool,
-                'recommendations': List[str]
-            }
-        """
+    def validate_password_strength(self, password: str) -> Dict[str, any]:
+        """Valida la fortaleza de una contraseña"""
         recommendations = []
         
         length = len(password)

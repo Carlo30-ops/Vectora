@@ -8,45 +8,43 @@ from PIL import Image
 from pathlib import Path
 from typing import List, Callable, Optional
 import os
-from config.settings import settings
+from logging import Logger
+from utils.logger import get_logger
+from config.settings import settings as default_settings
 
 
 class PDFConverter:
     """Servicio para conversión entre formatos"""
     
-    @staticmethod
+    def __init__(self, logger: Optional[Logger] = None, settings = None):
+        """
+        Inicializa el servicio de conversión
+        Args:
+            logger: Logger personalizado
+            settings: Configuración (opcional)
+        """
+        self.logger = logger or get_logger(__name__)
+        self.settings = settings or default_settings
+
     def pdf_to_word(
+        self,
         input_path: str,
         output_path: str,
         progress_callback: Optional[Callable[[int, str], None]] = None
     ) -> dict:
-        """
-        Convierte PDF a Word preservando el layout
-        
-        Args:
-            input_path: Ruta del PDF
-            output_path: Ruta del archivo DOCX resultante
-            progress_callback: Función para reportar progreso (progress, message)
-            
-        Returns:
-            Diccionario con información del resultado
-        """
+        """Convierte PDF a Word preservando el layout"""
         try:
+            self.logger.info(f"Convirtiendo PDF a Word: {input_path}")
             cv = Converter(input_path)
             
             def progress_wrapper(current, total):
                 if progress_callback and total > 0:
                     percent = int((current / total) * 100)
-                    
-                    # Mensajes según fase
-                    if percent <= 25:
-                        progress_callback(percent, "Analizando estructura del documento...")
-                    elif percent <= 50:
-                        progress_callback(percent, "Aplicando Layout Engine...")
-                    elif percent <= 75:
-                        progress_callback(percent, "Generando archivo final...")
-                    else:
-                        progress_callback(percent, f"Procesando... {percent}%")
+                    msg = "Procesando..."
+                    if percent <= 25: msg = "Analizando estructura..."
+                    elif percent <= 50: msg = "Aplicando layout..."
+                    elif percent <= 75: msg = "Generando documento..."
+                    progress_callback(percent, msg)
             
             # Convertir
             cv.convert(output_path, start=0, end=None)
@@ -62,45 +60,32 @@ class PDFConverter:
             }
             
         except Exception as e:
+            self.logger.error(f"Error PDF->Word: {e}", exc_info=True)
             raise Exception(f"Error al convertir PDF a Word: {str(e)}")
     
-    @staticmethod
     def pdf_to_images(
+        self,
         input_path: str,
         output_dir: str,
         dpi: int = 300,
         image_format: str = 'PNG',
         progress_callback: Optional[Callable[[int], None]] = None
     ) -> dict:
-        """
-        Convierte cada página del PDF en una imagen
-        
-        Args:
-            input_path: Ruta del PDF
-            output_dir: Directorio donde guardar las imágenes
-            dpi: Resolución (150=baja, 300=alta, 600=muy alta)
-            image_format: 'PNG' o 'JPEG'
-            progress_callback: Función para reportar progreso
-            
-        Returns:
-            Diccionario con información del resultado
-        """
+        """Convierte cada página del PDF en una imagen"""
         try:
-            # Crear directorio si no existe
+            self.logger.info(f"Convirtiendo PDF a Imágenes: {input_path}")
             Path(output_dir).mkdir(exist_ok=True, parents=True)
             
-            # Convertir PDF a imágenes usando Poppler
             images = convert_from_path(
                 input_path,
                 dpi=dpi,
-                poppler_path=settings.POPPLER_PATH
+                poppler_path=self.settings.POPPLER_PATH
             )
             
             output_files = []
             total_pages = len(images)
             base_name = Path(input_path).stem
             
-            # Guardar cada imagen
             for i, image in enumerate(images):
                 output_path = os.path.join(
                     output_dir,
@@ -121,48 +106,34 @@ class PDFConverter:
             }
             
         except Exception as e:
+            self.logger.error(f"Error PDF->Imágenes: {e}", exc_info=True)
             raise Exception(f"Error al convertir PDF a imágenes: {str(e)}")
     
-    @staticmethod
     def images_to_pdf(
+        self,
         image_paths: List[str],
         output_path: str,
         progress_callback: Optional[Callable[[int], None]] = None
     ) -> dict:
-        """
-        Combina múltiples imágenes en un PDF
-        
-        Args:
-            image_paths: Lista de rutas de imágenes
-            output_path: Ruta del PDF resultante
-            progress_callback: Función para reportar progreso
-            
-        Returns:
-            Diccionario con información del resultado
-        """
+        """Combina múltiples imágenes en un PDF"""
         if not image_paths:
             raise ValueError("Se necesita al menos una imagen")
         
         try:
+            self.logger.info(f"Convirtiendo {len(image_paths)} imágenes a PDF")
             images = []
             total_images = len(image_paths)
             
-            # Cargar todas las imágenes
             for i, path in enumerate(image_paths):
                 img = Image.open(path)
-                
-                # Convertir a RGB si es necesario (PNG con transparencia)
                 if img.mode != 'RGB':
                     img = img.convert('RGB')
-                
                 images.append(img)
                 
                 if progress_callback:
-                    # Primera mitad del progreso: cargando imágenes
                     progress = int((i + 1) / total_images * 50)
                     progress_callback(progress)
             
-            # Guardar como PDF
             if images:
                 images[0].save(
                     output_path,
@@ -170,7 +141,6 @@ class PDFConverter:
                     append_images=images[1:] if len(images) > 1 else [],
                     resolution=100.0
                 )
-                
                 if progress_callback:
                     progress_callback(100)
             
@@ -182,31 +152,21 @@ class PDFConverter:
             }
             
         except Exception as e:
+            self.logger.error(f"Error Imágenes->PDF: {e}", exc_info=True)
             raise Exception(f"Error al convertir imágenes a PDF: {str(e)}")
     
-    @staticmethod
     def word_to_pdf(
+        self,
         input_path: str,
         output_path: str,
         progress_callback: Optional[Callable[[int], None]] = None
     ) -> dict:
-        """
-        Convierte Word a PDF
-        
-        NOTA: Requiere Microsoft Word instalado (Windows) o LibreOffice (Linux)
-        
-        Args:
-            input_path: Ruta del archivo DOCX
-            output_path: Ruta del PDF resultante
-            progress_callback: Función para reportar progreso
-            
-        Returns:
-            Diccionario con información del resultado
-        """
-        if not settings.WORD_CONVERSION_AVAILABLE:
-            raise Exception("La conversión Word → PDF no está disponible. Requiere Microsoft Word instalado.")
+        """Convierte Word a PDF (Requiere MS Word)"""
+        if not self.settings.WORD_CONVERSION_AVAILABLE:
+            raise Exception("La conversión Word → PDF no está disponible.")
         
         try:
+            self.logger.info(f"Convirtiendo Word a PDF: {input_path}")
             from docx2pdf import convert
             
             if progress_callback:
@@ -224,6 +184,8 @@ class PDFConverter:
             }
             
         except ImportError:
+            self.logger.warning("docx2pdf no instalado")
             raise Exception("docx2pdf no está instalado")
         except Exception as e:
+            self.logger.error(f"Error Word->PDF: {e}", exc_info=True)
             raise Exception(f"Error al convertir Word a PDF: {str(e)}")

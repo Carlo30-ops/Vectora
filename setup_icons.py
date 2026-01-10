@@ -1,5 +1,10 @@
+"""
+Setup de iconos para Vectora
+Este script descarga iconos SVG de Lucide Icons (opcional)
+Si ya existen los iconos, no hace nada
+"""
 import os
-import requests
+import sys
 
 ICONS = {
     "dashboard": "layout-dashboard",
@@ -25,25 +30,60 @@ ICONS = {
 BASE_URL = "https://unpkg.com/lucide-static@latest/icons/"
 OUTPUT_DIR = "assets/icons"
 
+def check_icons_exist():
+    """Verifica si los iconos ya existen"""
+    if not os.path.exists(OUTPUT_DIR):
+        return False
+    
+    # Verificar si al menos algunos iconos existen
+    existing_icons = [f for f in os.listdir(OUTPUT_DIR) if f.endswith('.svg')]
+    return len(existing_icons) > 0
+
 def download_icons():
+    """Descarga iconos desde Lucide Icons (requiere requests)"""
+    # Verificar si ya existen iconos
+    if check_icons_exist():
+        print(f"✅ Iconos ya existen en {OUTPUT_DIR}/")
+        print("   No es necesario descargar")
+        return True
+    
+    # Intentar importar requests
+    try:
+        import requests
+    except ImportError:
+        print("⚠️  Módulo 'requests' no encontrado")
+        print("   Los iconos se descargarán automáticamente al ejecutar la app")
+        print("   O instala requests si quieres descargarlos ahora:")
+        print("   pip install requests")
+        return False
+    
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
         
-    print(f"Downloading icons to {OUTPUT_DIR}...")
+    print(f"📥 Descargando iconos a {OUTPUT_DIR}...")
     
+    success_count = 0
     for name, icon_name in ICONS.items():
         url = f"{BASE_URL}{icon_name}.svg"
         try:
-            response = requests.get(url)
+            response = requests.get(url, timeout=5)
             if response.status_code == 200:
-                # Customizing color to black/currentcolor is usually handled in Qt by QIcon/QPixmap mask or simpler: download as is (black stroke usually)
                 with open(f"{OUTPUT_DIR}/{name}.svg", "wb") as f:
                     f.write(response.content)
-                print(f"✅ Downloaded {name}.svg")
+                print(f"✅ {name}.svg")
+                success_count += 1
             else:
-                print(f"❌ Failed to download {name} ({url})")
+                print(f"❌ Fallo {name} (HTTP {response.status_code})")
         except Exception as e:
-            print(f"❌ Error downloading {name}: {e}")
+            print(f"❌ Error {name}: {e}")
+    
+    print(f"\n✅ Descargados {success_count}/{len(ICONS)} iconos")
+    return success_count > 0
 
 if __name__ == "__main__":
+    print("="*50)
+    print("  Setup de Iconos para Vectora")
+    print("="*50)
     download_icons()
+    print("="*50)
+

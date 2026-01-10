@@ -33,7 +33,10 @@ class OCRWorker(QThread):
             def progress_callback(val, msg=""):
                 self.progress_updated.emit(val, msg)
             
-            result = OCRService.pdf_to_searchable_pdf(
+            # Instanciar servicio (Inyección de dependencias)
+            ocr_service = OCRService()
+            
+            result = ocr_service.pdf_to_searchable_pdf(
                 self.input_path,
                 self.output_path,
                 language=self.language,
