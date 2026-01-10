@@ -13,6 +13,7 @@ a = Analysis(
         ('ui', 'ui'),
         ('backend', 'backend'),
         ('utils', 'utils'),
+        ('libs', 'libs'),
         ('.env', '.')
     ],
     hiddenimports=[

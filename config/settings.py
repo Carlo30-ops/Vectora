@@ -14,8 +14,35 @@ class Settings:
     """Clase de configuración global de la aplicación"""
     
     # ==================== PATHS EXTERNOS ====================
-    TESSERACT_PATH = os.getenv('TESSERACT_PATH', r'C:\Program Files\Tesseract-OCR\tesseract.exe')
-    POPPLER_PATH = os.getenv('POPPLER_PATH', r'C:\Program Files\poppler-25.12.0\Library\bin')
+    # Detectar base path para librerías
+    if getattr(sys, 'frozen', False):
+        LIBS_DIR = Path(sys._MEIPASS) / 'libs'
+    else:
+        LIBS_DIR = Path(__file__).parent.parent / 'libs'
+    # Detectar si estamos en modo congelado (ejecutable)
+    if getattr(sys, 'frozen', False):
+        # En ejecutable, los archivos están en sys._MEIPASS
+        # PyInstaller extrae los datos a una carpeta temporal
+        _MEIPASS = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+        TESSERACT_PATH = os.path.join(_MEIPASS, 'libs', 'tesseract', 'tesseract.exe')
+        POPPLER_PATH = os.path.join(_MEIPASS, 'libs', 'poppler')
+    else:
+        # En desarrollo, buscar en carpeta libs local o variables de entorno
+        _DEV_LIBS = Path(__file__).parent.parent / 'libs'
+        
+        # Tesseract
+        _local_tess = _DEV_LIBS / 'tesseract' / 'tesseract.exe'
+        if _local_tess.exists():
+            TESSERACT_PATH = str(_local_tess)
+        else:
+            TESSERACT_PATH = os.getenv('TESSERACT_PATH', r'C:\Program Files\Tesseract-OCR\tesseract.exe')
+            
+        # Poppler
+        _local_pop = _DEV_LIBS / 'poppler'
+        if _local_pop.exists():
+            POPPLER_PATH = str(_local_pop)
+        else:
+            POPPLER_PATH = os.getenv('POPPLER_PATH', r'C:\Program Files\poppler-25.12.0\Library\bin')
     
     # ==================== CONFIGURACIÓN OCR ====================
     TESSERACT_LANG = os.getenv('TESSERACT_LANG', 'spa+eng')
