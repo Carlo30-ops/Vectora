@@ -53,6 +53,7 @@ class Settings:
         # ==================== CONFIGURACIONES ====================
         self.APP_NAME = "Vectora"
         self.APP_VERSION = "5.0.0"
+        self.APP_AUTHOR = "Vectora"
         
         # OCR
         self.TESSERACT_LANG = os.getenv('TESSERACT_LANG', 'spa+eng')

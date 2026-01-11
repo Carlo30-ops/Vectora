@@ -3,7 +3,6 @@ Servicio de seguridad para PDFs
 Encriptación, desencriptación y configuración de permisos
 """
 import pikepdf
-from pathlib import Path
 from typing import Optional, Dict, Any
 from logging import Logger
 from utils.logger import get_logger
@@ -27,27 +26,8 @@ class PDFSecurity:
         permissions: Optional[Dict[str, bool]] = None
     ) -> dict:
         """Encripta un PDF con contraseña y permisos opcionales"""
-        # Validaciones
         if not password:
             raise ValueError("La contraseña no puede estar vacía")
-        
-        input_file = Path(input_path)
-        if not input_file.exists():
-            raise FileNotFoundError(f"El archivo no existe: {input_path}")
-        
-        if not input_file.suffix.lower() == '.pdf':
-            raise ValueError(f"El archivo debe ser un PDF: {input_path}")
-        
-        # Validar directorio de salida
-        output_file = Path(output_path)
-        output_dir = output_file.parent
-        try:
-            output_dir.mkdir(parents=True, exist_ok=True)
-            test_file = output_dir / '.write_test'
-            test_file.write_text('test')
-            test_file.unlink()
-        except (PermissionError, OSError) as e:
-            raise PermissionError(f"No se puede escribir en el directorio de salida: {output_dir}") from e
         
         self.logger.info(f"Encriptando PDF: {input_path}")
         try:
@@ -92,27 +72,8 @@ class PDFSecurity:
         password: str
     ) -> dict:
         """Remueve la encriptación de un PDF"""
-        # Validaciones
         if not password:
             raise ValueError("La contraseña no puede estar vacía")
-        
-        input_file = Path(input_path)
-        if not input_file.exists():
-            raise FileNotFoundError(f"El archivo no existe: {input_path}")
-        
-        if not input_file.suffix.lower() == '.pdf':
-            raise ValueError(f"El archivo debe ser un PDF: {input_path}")
-        
-        # Validar directorio de salida
-        output_file = Path(output_path)
-        output_dir = output_file.parent
-        try:
-            output_dir.mkdir(parents=True, exist_ok=True)
-            test_file = output_dir / '.write_test'
-            test_file.write_text('test')
-            test_file.unlink()
-        except (PermissionError, OSError) as e:
-            raise PermissionError(f"No se puede escribir en el directorio de salida: {output_dir}") from e
         
         self.logger.info(f"Desencriptando PDF: {input_path}")
         try:

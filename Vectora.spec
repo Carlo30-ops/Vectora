@@ -50,6 +50,11 @@ a = Analysis(
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
+# Icono (opcional)
+icon_path = 'assets/vectora.ico'
+if not os.path.exists(icon_path):
+    icon_path = None  # Si no existe, PyInstaller usará el icono por defecto
+
 exe = EXE(
     pyz,
     a.scripts,
@@ -64,7 +69,7 @@ exe = EXE(
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
-    icon='assets/vectora.ico',  # Icono oficial
+    icon=icon_path,  # Icono oficial (opcional)
 )
 
 coll = COLLECT(

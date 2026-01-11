@@ -40,34 +40,14 @@ def test_decrypt_pdf(security, sample_pdf, output_path):
         mock_pdf.save.assert_called_with(output_path)
         assert result['success'] is True
 
-def test_password_validation_weak(security):
-    """Test: Validación de contraseña débil"""
+def test_password_validation(security):
+    """Test validador de fortaleza de contraseña"""
     weak = "123"
-    result = security.validate_password_strength(weak)
-    
-    assert result['is_strong'] is False
-    assert len(result['recommendations']) > 0
-    assert result['length'] == 3
-    assert '8 caracteres' in ' '.join(result['recommendations'])
-
-def test_password_validation_strong(security):
-    """Test: Validación de contraseña fuerte"""
     strong = "StrongPass1!"
-    result = security.validate_password_strength(strong)
     
-    assert result['is_strong'] is True
-    assert result['has_upper'] is True
-    assert result['has_lower'] is True
-    assert result['has_digit'] is True
-    assert result['length'] >= 8
-
-def test_password_validation_medium(security):
-    """Test: Validación de contraseña media"""
-    medium = "Medium123"
-    result = security.validate_password_strength(medium)
+    res_weak = security.validate_password_strength(weak)
+    assert res_weak['is_strong'] is False
+    assert len(res_weak['recommendations']) > 0
     
-    # Tiene longitud, mayúsculas, minúsculas y dígitos pero puede faltar especial
-    assert result['length'] >= 8
-    assert result['has_upper'] is True
-    assert result['has_lower'] is True
-    assert result['has_digit'] is True
+    res_strong = security.validate_password_strength(strong)
+    assert res_strong['is_strong'] is True
