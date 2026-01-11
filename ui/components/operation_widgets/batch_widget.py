@@ -87,27 +87,47 @@ class BatchWidget(BaseOperationWidget):
         self.setup_ui()
     
     def setup_ui(self):
-        """Configura la interfaz"""
-        # --- Lista de Archivos ---
-        self.config_layout.addWidget(QLabel("1. Selecciona Archivos:"))
+        """Configura la interfaz - Look Premium"""
+        # Cambiar icono de la base
+        icon = IconHelper.get_icon("zap", color="#FFFFFF")
+        if not icon.isNull():
+            self.icon_lbl.setPixmap(icon.pixmap(36, 36))
+            
+        # Top Panel: Files & Operation Select
+        top_panel = QFrame()
+        top_panel.setObjectName("glassContainer")
+        top_panel.setStyleSheet("padding: 24px;")
+        tpl = QVBoxLayout(top_panel)
+        tpl.setSpacing(16)
         
-        btn_layout = QHBoxLayout()
-        add_btn = QPushButton("➕ Agregar Archivos")
+        # Files Header
+        fl = QHBoxLayout()
+        f_title = QLabel("Archivos en el lote")
+        f_title.setFont(QFont("Inter", 11, QFont.Bold))
+        fl.addWidget(f_title)
+        fl.addStretch()
+        
+        add_btn = QPushButton("+ Agregar")
+        add_btn.setCursor(Qt.PointingHandCursor)
+        add_btn.setStyleSheet("color: {{ACCENT}}; font-weight: 600; border: none; background: transparent;")
         add_btn.clicked.connect(self.add_files)
-        clear_btn = QPushButton("🗑️ Limpiar")
-        clear_btn.clicked.connect(self.clear_files)
+        fl.addWidget(add_btn)
         
-        btn_layout.addWidget(add_btn)
-        btn_layout.addWidget(clear_btn)
-        btn_layout.addStretch()
-        self.config_layout.addLayout(btn_layout)
+        clear_btn = QPushButton("Limpiar")
+        clear_btn.setCursor(Qt.PointingHandCursor)
+        clear_btn.setStyleSheet("color: {{TEXT_SECONDARY}}; font-size: 13px; border: none; background: transparent;")
+        clear_btn.clicked.connect(self.clear_files)
+        fl.addWidget(clear_btn)
+        tpl.addLayout(fl)
         
         self.file_list = QListWidget()
-        self.file_list.setFixedHeight(150)
-        self.config_layout.addWidget(self.file_list)
+        self.file_list.setStyleSheet("border-radius: 12px; border: 1px solid {{BORDER}}; padding: 8px;")
+        self.file_list.setFixedHeight(120)
+        tpl.addWidget(self.file_list)
         
-        # --- Selección de Operación ---
-        self.config_layout.addWidget(QLabel("2. Elige Operación:"))
+        # Operation Selector
+        tpl.addSpacing(10)
+        tpl.addWidget(QLabel("Operación a realizar"))
         self.op_combo = QComboBox()
         self.op_combo.addItems([
             "Comprimir PDF",
@@ -117,56 +137,66 @@ class BatchWidget(BaseOperationWidget):
             "Desencriptar"
         ])
         self.op_combo.currentIndexChanged.connect(self.on_op_changed)
-        self.config_layout.addWidget(self.op_combo)
+        tpl.addWidget(self.op_combo)
         
-        # --- Configuración Específica ---
+        self.config_layout.addWidget(top_panel)
+        
+        # Config Area - Stacked
         self.config_stack = QStackedWidget()
-        self.config_layout.addWidget(self.config_stack)
         
         # 0. Config Compresión
-        self.compress_config = QWidget()
+        self.compress_config = QFrame()
+        self.compress_config.setObjectName("glassContainer")
+        self.compress_config.setStyleSheet("padding: 16px;")
         c_layout = QVBoxLayout(self.compress_config)
-        c_layout.addWidget(QLabel("Nivel de compresión:"))
+        c_layout.addWidget(QLabel("Nivel de compresión"))
         self.c_slider = QSlider(Qt.Horizontal)
         self.c_slider.setRange(0, 100)
         self.c_slider.setValue(50)
         c_layout.addWidget(self.c_slider)
         self.config_stack.addWidget(self.compress_config)
         
-        # 1 y 2. Sin config (PDF->Word, Word->PDF)
+        # 1 y 2. Sin config
         self.empty_config = QWidget()
-        self.config_stack.addWidget(self.empty_config) # Para índice 1 y 2
+        self.config_stack.addWidget(self.empty_config) 
         
-        # 3. Config Seguridad (Password)
-        self.sec_config = QWidget()
+        # 3. Config Seguridad
+        self.sec_config = QFrame()
+        self.sec_config.setObjectName("glassContainer")
+        self.sec_config.setStyleSheet("padding: 16px;")
         s_layout = QVBoxLayout(self.sec_config)
-        s_layout.addWidget(QLabel("Contraseña:"))
+        s_layout.addWidget(QLabel("Contraseña maestra"))
         self.pwd_input = QLineEdit()
         self.pwd_input.setEchoMode(QLineEdit.Password)
-        self.pwd_input.setPlaceholderText("Contraseña para todos los archivos")
+        self.pwd_input.setPlaceholderText("Se usará para todos los archivos")
         s_layout.addWidget(self.pwd_input)
-        self.config_stack.addWidget(self.sec_config) # Para índice 3 y 4
-
-        # --- Watch Folder Toggle ---
-        self.config_layout.addWidget(QLabel("3. Automatización:"))
+        self.config_stack.addWidget(self.sec_config)
         
-        watch_layout = QHBoxLayout()
+        self.config_layout.addWidget(self.config_stack)
+
+        # Automation Panel
+        auto_panel = QFrame()
+        auto_panel.setObjectName("glassContainer")
+        auto_panel.setStyleSheet(f"background-color: {{HOVER}}; padding: 16px; border: 1px dashed {{BORDER}};")
+        al = QHBoxLayout(auto_panel)
+        
         self.watch_btn = QPushButton("👁️ Activar Carpeta Vigilada")
         self.watch_btn.setCheckable(True)
-        self.watch_btn.clicked.connect(self.toggle_watch)
+        self.watch_btn.setCursor(Qt.PointingHandCursor)
         self.watch_btn.setStyleSheet("""
-            QPushButton:checked {
-                background-color: #10b981;
-                color: white;
-            }
+            QPushButton { background: transparent; color: {{TEXT_PRIMARY}}; border-radius: 8px; padding: 8px 16px; }
+            QPushButton:checked { background-color: {{SUCCESS}}; color: white; }
         """)
+        self.watch_btn.clicked.connect(self.toggle_watch)
+        al.addWidget(self.watch_btn)
         
-        watch_layout.addWidget(self.watch_btn)
-        self.watch_status = QLabel("Inactivo")
-        watch_layout.addWidget(self.watch_status)
-        watch_layout.addStretch()
+        self.watch_status = QLabel("Modo pasivo")
+        self.watch_status.setFont(QFont("Inter", 9))
+        self.watch_status.setStyleSheet("color: {{TEXT_SECONDARY}};")
+        al.addWidget(self.watch_status)
+        al.addStretch()
         
-        self.config_layout.addLayout(watch_layout)
+        self.config_layout.addWidget(auto_panel)
 
         # Inicializar vista de config
         self.on_op_changed(0)

@@ -6,6 +6,8 @@ import pikepdf
 from pathlib import Path
 from typing import List, Callable, Optional
 from logging import Logger
+from backend.core.operation_result import OperationResult
+
 from utils.logger import get_logger
 
 class PDFMerger:
@@ -23,7 +25,7 @@ class PDFMerger:
         self,
         input_paths: List[str],
         output_path: str,
-        progress_callback: Optional[Callable[[int], None]] = None
+        progress_callback: Optional[Callable[[int, str], None]] = None
     ) -> dict:
         """
         Combina múltiples PDFs en uno solo usando pikepdf (High Performance)
@@ -56,7 +58,7 @@ class PDFMerger:
                         
                         if progress_callback:
                             progress = int((i + 1) / total_files * 100)
-                            progress_callback(progress)
+                            progress_callback(progress, f'Procesando {file_name}...')
                             
                     except Exception as e:
                         msg = f"Error al procesar {Path(pdf_path).name}: {str(e)}"
@@ -70,12 +72,13 @@ class PDFMerger:
             output_size = Path(output_path).stat().st_size / (1024 * 1024)
             self.logger.info(f"Combinación completada exitosamente - Tamaño: {output_size:.2f} MB")
             
-            return {
-                "success": True,
-                "output_path": output_path,
-                "total_files": total_files,
-                "message": f"Se combinaron {total_files} archivos exitosamente"
-            }
+            return OperationResult(
+                success=True,
+                message=f"Se combinaron {total_files} archivos exitosamente",
+                data={"output_path": output_path, "total_files": total_files},
+                metrics={"output_size_mb": round(output_size, 2)}
+            ).to_dict()
+
             
         except Exception as e:
             self.logger.error(f"Error durante la combinación: {e}", exc_info=True)

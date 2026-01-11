@@ -1,155 +1,68 @@
 @echo off
-echo ==========================================
-echo   Vectora - Verificador de Salud del Proyecto
-echo ==========================================
+setlocal enabledelayedexpansion
+title Vectora V5 - Diagnostico de Salud
+
+:: Obtener la ruta raiz del proyecto
+set "ROOT_DIR=%~dp0.."
+pushd "%ROOT_DIR%"
+
+echo ===================================================
+echo    VECTORA V5 - DIAGNOSTICO DE SALUD
+echo ===================================================
 echo.
 
-REM Verificar entorno virtual
-echo [1] Verificando entorno virtual...
-if exist venv\Scripts\python.exe (
-    echo    [OK] Entorno virtual encontrado
+set "BAD_COUNT=0"
+
+:: 1. Entorno
+echo [1/5] Verificando Entorno...
+if exist venv (
+    echo [OK] Entorno virtual detectado.
 ) else (
-    echo    [WARN] No se encontro el entorno virtual
-    echo           Ejecuta: python -m venv venv
+    echo [MISSING] venv no encontrado.
+    set /a BAD_COUNT+=1
 )
-echo.
 
-REM Verificar dependencias
-echo [2] Verificando dependencias principales...
-if exist venv\Scripts\pip.exe (
-    venv\Scripts\pip.exe show PySide6 > nul 2>&1
-    if errorlevel 1 (
-        echo    [WARN] PySide6 no instalado
+:: 2. Backend (Actualizado post Fase 1)
+echo.
+echo [2/5] Servicios Backend (V5)...
+for %%s in (pdf_merger.py pdf_splitter.py pdf_compressor.py pdf_converter.py pdf_security.py ocr_service.py batch_processor.py) do (
+    set "FILE=backend\services\%%s"
+    if exist "!FILE!" (
+        findstr "OperationResult" "!FILE!" >nul
+        if !ERRORLEVEL! EQU 0 (
+            echo [OK] %%s: V5 Standard
+        ) else (
+            echo [LEGACY] %%s: Requiere migrar
+            set /a BAD_COUNT+=1
+        )
     ) else (
-        echo    [OK] PySide6 instalado
-    )
-    
-    venv\Scripts\pip.exe show PyPDF2 > nul 2>&1
-    if errorlevel 1 (
-        echo    [WARN] PyPDF2 no instalado
-    ) else (
-        echo    [OK] PyPDF2 instalado
-    )
-    
-    venv\Scripts\pip.exe show pikepdf > nul 2>&1
-    if errorlevel 1 (
-        echo    [WARN] pikepdf no instalado
-    ) else (
-        echo    [OK] pikepdf instalado
+        echo [MISSING] %%s: No encontrado
+        set /a BAD_COUNT+=1
     )
 )
+
+:: 3. UI Widgets
 echo.
-
-REM Verificar estructura de directorios
-echo [3] Verificando estructura de directorios...
-if exist backend\ (
-    echo    [OK] backend/
-) else (
-    echo    [ERROR] Falta backend/
+echo [3/5] Widgets UI...
+for %%w in (merge_widget.py split_widget.py compress_widget.py convert_widget.py security_widget.py ocr_widget.py batch_widget.py) do (
+    if not exist "ui\components\operation_widgets\%%w" set /a BAD_COUNT+=1
 )
+echo [INFO] Analisis de widgets completado.
 
-if exist ui\ (
-    echo    [OK] ui/
-) else (
-    echo    [ERROR] Falta ui/
-)
-
-if exist config\ (
-    echo    [OK] config/
-) else (
-    echo    [ERROR] Falta config/
-)
-
-if exist utils\ (
-    echo    [OK] utils/
-) else (
-    echo    [ERROR] Falta utils/
-)
-
-if exist icons\ (
-    echo    [OK] icons/
-) else (
-    echo    [WARN] Falta icons/
-)
+:: Result Message
 echo.
-
-REM Verificar directorios de trabajo
-echo [4] Verificando directorios de trabajo...
-if exist temp\ (
-    echo    [OK] temp/
+if !BAD_COUNT! EQU 0 (
+    set "MSG=Proyecto en perfecto estado (10/10). Todo estandarizado."
+    set "ICON=Information"
 ) else (
-    echo    [WARN] Creando temp/
-    mkdir temp
+    set "MSG=Se han detectado !BAD_COUNT! problemas o componentes pendientes. Revisa la consola."
+    set "ICON=Warning"
 )
 
-if exist output\ (
-    echo    [OK] output/
-) else (
-    echo    [WARN] Creando output/
-    mkdir output
-)
-echo.
+powershell -Command "[Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms'); [System.Windows.Forms.MessageBox]::Show('!MSG!', 'Vectora V5 - Diagnostico', 'OK', '!ICON!')"
 
-REM Verificar archivo de configuración
-echo [5] Verificando configuracion...
-if exist .env (
-    echo    [OK] .env encontrado
-) else (
-    echo    [WARN] .env no encontrado
-    echo           Copia .env.example a .env y configura las rutas
-)
-echo.
-
-REM Verificar herramientas externas
-echo [6] Verificando herramientas externas...
-if exist "C:\Program Files\Tesseract-OCR\tesseract.exe" (
-    echo    [OK] Tesseract OCR encontrado
-) else (
-    echo    [WARN] Tesseract OCR no encontrado en la ruta por defecto
-)
-
-if exist "C:\Program Files\poppler-25.12.0\Library\bin" (
-    echo    [OK] Poppler encontrado
-) else (
-    echo    [WARN] Poppler no encontrado en la ruta por defecto
-)
-echo.
-
-REM Verificar carpeta duplicada
-echo [7] Buscando carpeta Vectora duplicada...
-if exist Vectora\Vectora\ (
-    echo    [WARN] Carpeta duplicada Vectora\Vectora\ encontrada
-    echo           Considera eliminarla o investigar su proposito
-) else (
-    echo    [OK] No se encontro duplicacion
-)
-echo.
-
-REM Verificar archivos principales
-echo [8] Verificando archivos principales...
-if exist main.py (
-    echo    [OK] main.py
-) else (
-    echo    [ERROR] main.py no encontrado
-)
-
-if exist requirements.txt (
-    echo    [OK] requirements.txt
-) else (
-    echo    [WARN] requirements.txt no encontrado
-)
-
-if exist build_exe.bat (
-    echo    [OK] build_exe.bat
-) else (
-    echo    [WARN] build_exe.bat no encontrado
-)
-echo.
-
-echo ==========================================
-echo Verificacion completada
-echo ==========================================
-echo.
-echo Revisa los warnings y errores arriba para corregir problemas.
-echo.
+echo ===================================================
+echo    DIAGNOSTICO FINALITADO
+echo ===================================================
+popd
 pause

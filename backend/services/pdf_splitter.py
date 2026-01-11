@@ -6,6 +6,8 @@ from PyPDF2 import PdfReader, PdfWriter
 from pathlib import Path
 from typing import List, Callable, Optional
 from logging import Logger
+from backend.core.operation_result import OperationResult
+
 from utils.logger import get_logger
 import os
 
@@ -51,7 +53,7 @@ class PDFSplitter:
         output_path: str,
         start_page: int,
         end_page: int,
-        progress_callback: Optional[Callable[[int], None]] = None
+        progress_callback: Optional[Callable[[int, str], None]] = None
     ) -> dict:
         """Extrae un rango de páginas de un PDF"""
         self.logger.info(f"Dividiendo por rango {start_page}-{end_page}: {input_path}")
@@ -67,24 +69,24 @@ class PDFSplitter:
             writer.add_page(reader.pages[page_num])
             if progress_callback:
                 progress = int((page_num - start_page + 2) / (end_page - start_page + 1) * 100)
-                progress_callback(progress)
+                progress_callback(progress, f'Extrayendo página {page_num+1}...')
         
         with open(output_path, 'wb') as output_file:
             writer.write(output_file)
             
-        return {
-            "success": True,
-            "output_path": output_path,
-            "pages_extracted": end_page - start_page + 1,
-            "message": f"Se extrajeron las páginas {start_page}-{end_page}"
-        }
+        return OperationResult(
+            success=True,
+            message=f"Se extrajeron las páginas {start_page}-{end_page}",
+            data={"output_path": output_path, "pages_extracted": end_page - start_page + 1}
+        ).to_dict()
+
 
     def split_by_pages(
         self,
         input_path: str,
         output_path: str,
         page_specification: str,
-        progress_callback: Optional[Callable[[int], None]] = None
+        progress_callback: Optional[Callable[[int, str], None]] = None
     ) -> dict:
         """Extrae páginas específicas de un PDF"""
         self.logger.info(f"Dividiendo páginas específicas '{page_specification}': {input_path}")
@@ -101,24 +103,24 @@ class PDFSplitter:
             writer.add_page(reader.pages[page_num - 1])
             if progress_callback:
                 progress = int((i + 1) / len(pages) * 100)
-                progress_callback(progress)
+                progress_callback(progress, f'Extrayendo página {page_num}...')
         
         with open(output_path, 'wb') as output_file:
             writer.write(output_file)
             
-        return {
-            "success": True,
-            "output_path": output_path,
-            "pages_extracted": len(pages),
-            "message": f"Se extrajeron {len(pages)} páginas"
-        }
+        return OperationResult(
+            success=True,
+            message=f"Se extrajeron {len(pages)} páginas",
+            data={"output_path": output_path, "pages_extracted": len(pages)}
+        ).to_dict()
+
     
     def split_every_n_pages(
         self,
         input_path: str,
         output_dir: str,
         n_pages: int,
-        progress_callback: Optional[Callable[[int], None]] = None
+        progress_callback: Optional[Callable[[int, str], None]] = None
     ) -> dict:
         """Divide el PDF cada N páginas"""
         self.logger.info(f"Dividiendo cada {n_pages} páginas: {input_path}")
@@ -148,11 +150,11 @@ class PDFSplitter:
             output_files.append(out_path)
             if progress_callback:
                 progress = int((i + n_pages) / total_pages * 100)
-                progress_callback(min(progress, 100))
+                progress_callback(min(progress, 100), f'Generando parte {part_num}...')
                 
-        return {
-            "success": True,
-            "output_files": output_files,
-            "total_parts": len(output_files),
-            "message": f"Se crearon {len(output_files)} archivos"
-        }
+        return OperationResult(
+            success=True,
+            message=f"Se crearon {len(output_files)} archivos",
+            data={"output_files": output_files, "total_parts": len(output_files)}
+        ).to_dict()
+

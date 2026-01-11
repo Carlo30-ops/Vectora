@@ -4108,6 +4108,15 @@ imported by:
  &#8226;   <a href="#_pyrepl.unix_console">_pyrepl.unix_console</a>
  &#8226;   <a href="#_pyrepl.utils">_pyrepl.utils</a>
  &#8226;   <a href="#_pyrepl.windows_console">_pyrepl.windows_console</a>
+ &#8226;   <a href="#charset_normalizer">charset_normalizer</a>
+ &#8226;   <a href="#charset_normalizer.api">charset_normalizer.api</a>
+ &#8226;   <a href="#charset_normalizer.cd">charset_normalizer.cd</a>
+ &#8226;   <a href="#charset_normalizer.constant">charset_normalizer.constant</a>
+ &#8226;   <a href="#charset_normalizer.legacy">charset_normalizer.legacy</a>
+ &#8226;   <a href="#charset_normalizer.md">charset_normalizer.md</a>
+ &#8226;   <a href="#charset_normalizer.models">charset_normalizer.models</a>
+ &#8226;   <a href="#charset_normalizer.utils">charset_normalizer.utils</a>
+ &#8226;   <a href="#charset_normalizer.version">charset_normalizer.version</a>
  &#8226;   <a href="#codeop">codeop</a>
  &#8226;   <a href="#doctest">doctest</a>
  &#8226;   <a href="#docx">docx</a>
@@ -4965,7 +4974,8 @@ imported by:
   <a name="_multibytecodec"></a>
   <tt>_multibytecodec</tt> <span class="moduletype"><i>(builtin module)</i></span>  <div class="import">
 imported by:
-    <a href="#encodings.big5">encodings.big5</a>
+    <a href="#charset_normalizer.utils">charset_normalizer.utils</a>
+ &#8226;   <a href="#encodings.big5">encodings.big5</a>
  &#8226;   <a href="#encodings.big5hkscs">encodings.big5hkscs</a>
  &#8226;   <a href="#encodings.cp932">encodings.cp932</a>
  &#8226;   <a href="#encodings.cp949">encodings.cp949</a>
@@ -7517,7 +7527,44 @@ imported by:
   <a target="code" href="///C:/Users/Carlo/OneDrive/Documentos/Escritorio/Vectora/backend/__init__.py" type="text/plain"><tt>backend</tt></a>
 <span class="moduletype">Package</span>  <div class="import">
 imported by:
-    <a href="#backend.services">backend.services</a>
+    <a href="#backend.core">backend.core</a>
+ &#8226;   <a href="#backend.services">backend.services</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="backend.core"></a>
+  <a target="code" href="-" type="text/plain"><tt>backend.core</tt></a>
+<span class="moduletype">NamespacePackage</span>  <div class="import">
+imports:
+    <a href="#backend">backend</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#backend.core.operation_result">backend.core.operation_result</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="backend.core.operation_result"></a>
+  <a target="code" href="///C:/Users/Carlo/OneDrive/Documentos/Escritorio/Vectora/backend/core/operation_result.py" type="text/plain"><tt>backend.core.operation_result</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#backend.core">backend.core</a>
+ &#8226;   <a href="#dataclasses">dataclasses</a>
+ &#8226;   <a href="#time">time</a>
+ &#8226;   <a href="#typing">typing</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#backend.services.pdf_merger">backend.services.pdf_merger</a>
+ &#8226;   <a href="#backend.services.pdf_splitter">backend.services.pdf_splitter</a>
 
   </div>
 
@@ -7559,6 +7606,7 @@ imported by:
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
     <a href="#backend.services">backend.services</a>
+ &#8226;   <a href="#dataclasses">dataclasses</a>
  &#8226;   <a href="#logging">logging</a>
  &#8226;   <a href="#pathlib">pathlib</a>
  &#8226;   <a href="#traceback">traceback</a>
@@ -7660,7 +7708,8 @@ imported by:
   <a target="code" href="///C:/Users/Carlo/OneDrive/Documentos/Escritorio/Vectora/backend/services/pdf_merger.py" type="text/plain"><tt>backend.services.pdf_merger</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
-    <a href="#backend.services">backend.services</a>
+    <a href="#backend.core.operation_result">backend.core.operation_result</a>
+ &#8226;   <a href="#backend.services">backend.services</a>
  &#8226;   <a href="#logging">logging</a>
  &#8226;   <a href="#pathlib">pathlib</a>
  &#8226;   <a href="#pikepdf">pikepdf</a>
@@ -7706,6 +7755,7 @@ imported by:
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
     <a href="#PyPDF2">PyPDF2</a>
+ &#8226;   <a href="#backend.core.operation_result">backend.core.operation_result</a>
  &#8226;   <a href="#backend.services">backend.services</a>
  &#8226;   <a href="#logging">logging</a>
  &#8226;   <a href="#os">os</a>
@@ -8019,10 +8069,242 @@ imported by:
 
 <div class="node">
   <a name="charset_normalizer"></a>
-  <a target="code" href="" type="text/plain"><tt>charset_normalizer</tt></a>
-<span class="moduletype">MissingModule</span>  <div class="import">
+  <a target="code" href="///C:/Users/Carlo/OneDrive/Documentos/Escritorio/Vectora/venv/Lib/site-packages/charset_normalizer/__init__.py" type="text/plain"><tt>charset_normalizer</tt></a>
+<span class="moduletype">Package</span>  <div class="import">
+imports:
+    <a href="#__future__">__future__</a>
+ &#8226;   <a href="#charset_normalizer.api">charset_normalizer.api</a>
+ &#8226;   <a href="#charset_normalizer.legacy">charset_normalizer.legacy</a>
+ &#8226;   <a href="#charset_normalizer.md__mypyc">charset_normalizer.md__mypyc</a>
+ &#8226;   <a href="#charset_normalizer.models">charset_normalizer.models</a>
+ &#8226;   <a href="#charset_normalizer.utils">charset_normalizer.utils</a>
+ &#8226;   <a href="#charset_normalizer.version">charset_normalizer.version</a>
+ &#8226;   <a href="#logging">logging</a>
+
+  </div>
+  <div class="import">
 imported by:
-    <a href="#numpy.f2py.crackfortran">numpy.f2py.crackfortran</a>
+    <a href="#charset_normalizer.api">charset_normalizer.api</a>
+ &#8226;   <a href="#charset_normalizer.cd">charset_normalizer.cd</a>
+ &#8226;   <a href="#charset_normalizer.constant">charset_normalizer.constant</a>
+ &#8226;   <a href="#charset_normalizer.legacy">charset_normalizer.legacy</a>
+ &#8226;   <a href="#charset_normalizer.md">charset_normalizer.md</a>
+ &#8226;   <a href="#charset_normalizer.md__mypyc">charset_normalizer.md__mypyc</a>
+ &#8226;   <a href="#charset_normalizer.models">charset_normalizer.models</a>
+ &#8226;   <a href="#charset_normalizer.utils">charset_normalizer.utils</a>
+ &#8226;   <a href="#charset_normalizer.version">charset_normalizer.version</a>
+ &#8226;   <a href="#numpy.f2py.crackfortran">numpy.f2py.crackfortran</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="charset_normalizer.api"></a>
+  <a target="code" href="///C:/Users/Carlo/OneDrive/Documentos/Escritorio/Vectora/venv/Lib/site-packages/charset_normalizer/api.py" type="text/plain"><tt>charset_normalizer.api</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#__future__">__future__</a>
+ &#8226;   <a href="#charset_normalizer">charset_normalizer</a>
+ &#8226;   <a href="#charset_normalizer.cd">charset_normalizer.cd</a>
+ &#8226;   <a href="#charset_normalizer.constant">charset_normalizer.constant</a>
+ &#8226;   <a href="#charset_normalizer.md">charset_normalizer.md</a>
+ &#8226;   <a href="#charset_normalizer.models">charset_normalizer.models</a>
+ &#8226;   <a href="#charset_normalizer.utils">charset_normalizer.utils</a>
+ &#8226;   <a href="#logging">logging</a>
+ &#8226;   <a href="#os">os</a>
+ &#8226;   <a href="#typing">typing</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#charset_normalizer">charset_normalizer</a>
+ &#8226;   <a href="#charset_normalizer.legacy">charset_normalizer.legacy</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="charset_normalizer.cd"></a>
+  <a target="code" href="///C:/Users/Carlo/OneDrive/Documentos/Escritorio/Vectora/venv/Lib/site-packages/charset_normalizer/cd.py" type="text/plain"><tt>charset_normalizer.cd</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#__future__">__future__</a>
+ &#8226;   <a href="#charset_normalizer">charset_normalizer</a>
+ &#8226;   <a href="#charset_normalizer.constant">charset_normalizer.constant</a>
+ &#8226;   <a href="#charset_normalizer.md">charset_normalizer.md</a>
+ &#8226;   <a href="#charset_normalizer.models">charset_normalizer.models</a>
+ &#8226;   <a href="#charset_normalizer.utils">charset_normalizer.utils</a>
+ &#8226;   <a href="#codecs">codecs</a>
+ &#8226;   <a href="#collections">collections</a>
+ &#8226;   <a href="#functools">functools</a>
+ &#8226;   <a href="#importlib">importlib</a>
+ &#8226;   <a href="#typing">typing</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#charset_normalizer.api">charset_normalizer.api</a>
+ &#8226;   <a href="#charset_normalizer.models">charset_normalizer.models</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="charset_normalizer.constant"></a>
+  <a target="code" href="///C:/Users/Carlo/OneDrive/Documentos/Escritorio/Vectora/venv/Lib/site-packages/charset_normalizer/constant.py" type="text/plain"><tt>charset_normalizer.constant</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#__future__">__future__</a>
+ &#8226;   <a href="#charset_normalizer">charset_normalizer</a>
+ &#8226;   <a href="#codecs">codecs</a>
+ &#8226;   <a href="#encodings.aliases">encodings.aliases</a>
+ &#8226;   <a href="#re">re</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#charset_normalizer.api">charset_normalizer.api</a>
+ &#8226;   <a href="#charset_normalizer.cd">charset_normalizer.cd</a>
+ &#8226;   <a href="#charset_normalizer.legacy">charset_normalizer.legacy</a>
+ &#8226;   <a href="#charset_normalizer.md">charset_normalizer.md</a>
+ &#8226;   <a href="#charset_normalizer.models">charset_normalizer.models</a>
+ &#8226;   <a href="#charset_normalizer.utils">charset_normalizer.utils</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="charset_normalizer.legacy"></a>
+  <a target="code" href="///C:/Users/Carlo/OneDrive/Documentos/Escritorio/Vectora/venv/Lib/site-packages/charset_normalizer/legacy.py" type="text/plain"><tt>charset_normalizer.legacy</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#__future__">__future__</a>
+ &#8226;   <a href="#charset_normalizer">charset_normalizer</a>
+ &#8226;   <a href="#charset_normalizer.api">charset_normalizer.api</a>
+ &#8226;   <a href="#charset_normalizer.constant">charset_normalizer.constant</a>
+ &#8226;   <a href="#typing">typing</a>
+ &#8226;   <a href="#typing_extensions">typing_extensions</a>
+ &#8226;   <a href="#warnings">warnings</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#charset_normalizer">charset_normalizer</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="charset_normalizer.md"></a>
+  <tt>charset_normalizer.md</tt> <span class="moduletype"><tt>C:\Users\Carlo\OneDrive\Documentos\Escritorio\Vectora\venv\Lib\site-packages\charset_normalizer\md.cp314-win_amd64.pyd</tt></span>  <div class="import">
+imports:
+    <a href="#__future__">__future__</a>
+ &#8226;   <a href="#charset_normalizer">charset_normalizer</a>
+ &#8226;   <a href="#charset_normalizer.constant">charset_normalizer.constant</a>
+ &#8226;   <a href="#charset_normalizer.utils">charset_normalizer.utils</a>
+ &#8226;   <a href="#functools">functools</a>
+ &#8226;   <a href="#logging">logging</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#charset_normalizer.api">charset_normalizer.api</a>
+ &#8226;   <a href="#charset_normalizer.cd">charset_normalizer.cd</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="charset_normalizer.md__mypyc"></a>
+  <tt>charset_normalizer.md__mypyc</tt> <span class="moduletype"><tt>C:\Users\Carlo\OneDrive\Documentos\Escritorio\Vectora\venv\Lib\site-packages\charset_normalizer\md__mypyc.cp314-win_amd64.pyd</tt></span>  <div class="import">
+imports:
+    <a href="#charset_normalizer">charset_normalizer</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#charset_normalizer">charset_normalizer</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="charset_normalizer.models"></a>
+  <a target="code" href="///C:/Users/Carlo/OneDrive/Documentos/Escritorio/Vectora/venv/Lib/site-packages/charset_normalizer/models.py" type="text/plain"><tt>charset_normalizer.models</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#__future__">__future__</a>
+ &#8226;   <a href="#charset_normalizer">charset_normalizer</a>
+ &#8226;   <a href="#charset_normalizer.cd">charset_normalizer.cd</a>
+ &#8226;   <a href="#charset_normalizer.constant">charset_normalizer.constant</a>
+ &#8226;   <a href="#charset_normalizer.utils">charset_normalizer.utils</a>
+ &#8226;   <a href="#encodings.aliases">encodings.aliases</a>
+ &#8226;   <a href="#hashlib">hashlib</a>
+ &#8226;   <a href="#json">json</a>
+ &#8226;   <a href="#re">re</a>
+ &#8226;   <a href="#typing">typing</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#charset_normalizer">charset_normalizer</a>
+ &#8226;   <a href="#charset_normalizer.api">charset_normalizer.api</a>
+ &#8226;   <a href="#charset_normalizer.cd">charset_normalizer.cd</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="charset_normalizer.utils"></a>
+  <a target="code" href="///C:/Users/Carlo/OneDrive/Documentos/Escritorio/Vectora/venv/Lib/site-packages/charset_normalizer/utils.py" type="text/plain"><tt>charset_normalizer.utils</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#__future__">__future__</a>
+ &#8226;   <a href="#_multibytecodec">_multibytecodec</a>
+ &#8226;   <a href="#charset_normalizer">charset_normalizer</a>
+ &#8226;   <a href="#charset_normalizer.constant">charset_normalizer.constant</a>
+ &#8226;   <a href="#codecs">codecs</a>
+ &#8226;   <a href="#encodings.aliases">encodings.aliases</a>
+ &#8226;   <a href="#functools">functools</a>
+ &#8226;   <a href="#importlib">importlib</a>
+ &#8226;   <a href="#logging">logging</a>
+ &#8226;   <a href="#re">re</a>
+ &#8226;   <a href="#typing">typing</a>
+ &#8226;   <a href="#unicodedata">unicodedata</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#charset_normalizer">charset_normalizer</a>
+ &#8226;   <a href="#charset_normalizer.api">charset_normalizer.api</a>
+ &#8226;   <a href="#charset_normalizer.cd">charset_normalizer.cd</a>
+ &#8226;   <a href="#charset_normalizer.md">charset_normalizer.md</a>
+ &#8226;   <a href="#charset_normalizer.models">charset_normalizer.models</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="charset_normalizer.version"></a>
+  <a target="code" href="///C:/Users/Carlo/OneDrive/Documentos/Escritorio/Vectora/venv/Lib/site-packages/charset_normalizer/version.py" type="text/plain"><tt>charset_normalizer.version</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#__future__">__future__</a>
+ &#8226;   <a href="#charset_normalizer">charset_normalizer</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#charset_normalizer">charset_normalizer</a>
 
   </div>
 
@@ -8090,6 +8372,9 @@ imported by:
  &#8226;   <a href="#PyPDF2.generic._base">PyPDF2.generic._base</a>
  &#8226;   <a href="#PyPDF2.generic._utils">PyPDF2.generic._utils</a>
  &#8226;   <a href="#_pickle">_pickle</a>
+ &#8226;   <a href="#charset_normalizer.cd">charset_normalizer.cd</a>
+ &#8226;   <a href="#charset_normalizer.constant">charset_normalizer.constant</a>
+ &#8226;   <a href="#charset_normalizer.utils">charset_normalizer.utils</a>
  &#8226;   <a href="#dotenv.parser">dotenv.parser</a>
  &#8226;   <a href="#encodings">encodings</a>
  &#8226;   <a href="#encodings._win_cp_codecs">encodings._win_cp_codecs</a>
@@ -8282,6 +8567,7 @@ imported by:
  &#8226;   <a href="#asyncio.selector_events">asyncio.selector_events</a>
  &#8226;   <a href="#asyncio.sslproto">asyncio.sslproto</a>
  &#8226;   <a href="#asyncio.streams">asyncio.streams</a>
+ &#8226;   <a href="#charset_normalizer.cd">charset_normalizer.cd</a>
  &#8226;   <a href="#concurrent.futures._base">concurrent.futures._base</a>
  &#8226;   <a href="#configparser">configparser</a>
  &#8226;   <a href="#contextlib">contextlib</a>
@@ -9762,6 +10048,8 @@ imported by:
  &#8226;   <a href="#_pyrepl.readline">_pyrepl.readline</a>
  &#8226;   <a href="#_pyrepl.terminfo">_pyrepl.terminfo</a>
  &#8226;   <a href="#asyncio.graph">asyncio.graph</a>
+ &#8226;   <a href="#backend.core.operation_result">backend.core.operation_result</a>
+ &#8226;   <a href="#backend.services.batch_processor">backend.services.batch_processor</a>
  &#8226;   <a href="#fontTools.designspaceLib.statNames">fontTools.designspaceLib.statNames</a>
  &#8226;   <a href="#fontTools.designspaceLib.types">fontTools.designspaceLib.types</a>
  &#8226;   <a href="#fontTools.misc.configTools">fontTools.misc.configTools</a>
@@ -13432,7 +13720,10 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#encodings">encodings</a>
+    <a href="#charset_normalizer.constant">charset_normalizer.constant</a>
+ &#8226;   <a href="#charset_normalizer.models">charset_normalizer.models</a>
+ &#8226;   <a href="#charset_normalizer.utils">charset_normalizer.utils</a>
+ &#8226;   <a href="#encodings">encodings</a>
  &#8226;   <a href="#locale">locale</a>
  &#8226;   <a href="#main.py">main.py</a>
 
@@ -22224,6 +22515,9 @@ imported by:
  &#8226;   <a href="#asyncio.threads">asyncio.threads</a>
  &#8226;   <a href="#asyncio.windows_events">asyncio.windows_events</a>
  &#8226;   <a href="#bdb">bdb</a>
+ &#8226;   <a href="#charset_normalizer.cd">charset_normalizer.cd</a>
+ &#8226;   <a href="#charset_normalizer.md">charset_normalizer.md</a>
+ &#8226;   <a href="#charset_normalizer.utils">charset_normalizer.utils</a>
  &#8226;   <a href="#concurrent.futures.process">concurrent.futures.process</a>
  &#8226;   <a href="#configparser">configparser</a>
  &#8226;   <a href="#contextlib">contextlib</a>
@@ -22563,6 +22857,7 @@ imported by:
  &#8226;   <a href="#PyPDF2._security">PyPDF2._security</a>
  &#8226;   <a href="#PyPDF2._writer">PyPDF2._writer</a>
  &#8226;   <a href="#PyPDF2.generic._base">PyPDF2.generic._base</a>
+ &#8226;   <a href="#charset_normalizer.models">charset_normalizer.models</a>
  &#8226;   <a href="#docx.image.image">docx.image.image</a>
  &#8226;   <a href="#docx.parts.image">docx.parts.image</a>
  &#8226;   <a href="#hmac">hmac</a>
@@ -22853,6 +23148,8 @@ imported by:
     <a href="#_distutils_hack">_distutils_hack</a>
  &#8226;   <a href="#_pyi_rth_utils.qt">_pyi_rth_utils.qt</a>
  &#8226;   <a href="#_pyrepl._module_completer">_pyrepl._module_completer</a>
+ &#8226;   <a href="#charset_normalizer.cd">charset_normalizer.cd</a>
+ &#8226;   <a href="#charset_normalizer.utils">charset_normalizer.utils</a>
  &#8226;   <a href="#cv2">cv2</a>
  &#8226;   <a href="#fontTools.ttLib.ttFont">fontTools.ttLib.ttFont</a>
  &#8226;   <a href="#importlib">importlib</a>
@@ -23851,7 +24148,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#docx2pdf">docx2pdf</a>
+    <a href="#charset_normalizer.models">charset_normalizer.models</a>
+ &#8226;   <a href="#docx2pdf">docx2pdf</a>
  &#8226;   <a href="#fire.core">fire.core</a>
  &#8226;   <a href="#fontTools.ttLib.tables.D__e_b_g">fontTools.ttLib.tables.D__e_b_g</a>
  &#8226;   <a href="#importlib.metadata">importlib.metadata</a>
@@ -24051,6 +24349,10 @@ imported by:
  &#8226;   <a href="#backend.services.pdf_security">backend.services.pdf_security</a>
  &#8226;   <a href="#backend.services.pdf_splitter">backend.services.pdf_splitter</a>
  &#8226;   <a href="#backend.services.pdf_watcher">backend.services.pdf_watcher</a>
+ &#8226;   <a href="#charset_normalizer">charset_normalizer</a>
+ &#8226;   <a href="#charset_normalizer.api">charset_normalizer.api</a>
+ &#8226;   <a href="#charset_normalizer.md">charset_normalizer.md</a>
+ &#8226;   <a href="#charset_normalizer.utils">charset_normalizer.utils</a>
  &#8226;   <a href="#concurrent.futures._base">concurrent.futures._base</a>
  &#8226;   <a href="#dotenv.main">dotenv.main</a>
  &#8226;   <a href="#fontTools">fontTools</a>
@@ -32955,6 +33257,7 @@ imported by:
  &#8226;   <a href="#backend.services.pdf_watcher">backend.services.pdf_watcher</a>
  &#8226;   <a href="#bdb">bdb</a>
  &#8226;   <a href="#bz2">bz2</a>
+ &#8226;   <a href="#charset_normalizer.api">charset_normalizer.api</a>
  &#8226;   <a href="#colorama.ansitowin32">colorama.ansitowin32</a>
  &#8226;   <a href="#compression.zstd._zstdfile">compression.zstd._zstdfile</a>
  &#8226;   <a href="#concurrent.futures.process">concurrent.futures.process</a>
@@ -37072,6 +37375,9 @@ imported by:
  &#8226;   <a href="#_strptime">_strptime</a>
  &#8226;   <a href="#argparse">argparse</a>
  &#8226;   <a href="#ast">ast</a>
+ &#8226;   <a href="#charset_normalizer.constant">charset_normalizer.constant</a>
+ &#8226;   <a href="#charset_normalizer.models">charset_normalizer.models</a>
+ &#8226;   <a href="#charset_normalizer.utils">charset_normalizer.utils</a>
  &#8226;   <a href="#colorama.ansitowin32">colorama.ansitowin32</a>
  &#8226;   <a href="#configparser">configparser</a>
  &#8226;   <a href="#csv">csv</a>
@@ -43133,6 +43439,7 @@ imported by:
  &#8226;   <a href="#_strptime">_strptime</a>
  &#8226;   <a href="#asyncio.base_events">asyncio.base_events</a>
  &#8226;   <a href="#asyncio.windows_events">asyncio.windows_events</a>
+ &#8226;   <a href="#backend.core.operation_result">backend.core.operation_result</a>
  &#8226;   <a href="#backend.services.pdf_watcher">backend.services.pdf_watcher</a>
  &#8226;   <a href="#concurrent.futures._base">concurrent.futures._base</a>
  &#8226;   <a href="#concurrent.interpreters._queues">concurrent.interpreters._queues</a>
@@ -44042,6 +44349,7 @@ imported by:
  &#8226;   <a href="#_pyrepl.utils">_pyrepl.utils</a>
  &#8226;   <a href="#_pyrepl.windows_console">_pyrepl.windows_console</a>
  &#8226;   <a href="#annotationlib">annotationlib</a>
+ &#8226;   <a href="#backend.core.operation_result">backend.core.operation_result</a>
  &#8226;   <a href="#backend.services.batch_processor">backend.services.batch_processor</a>
  &#8226;   <a href="#backend.services.ocr_service">backend.services.ocr_service</a>
  &#8226;   <a href="#backend.services.pdf_compressor">backend.services.pdf_compressor</a>
@@ -44050,6 +44358,11 @@ imported by:
  &#8226;   <a href="#backend.services.pdf_security">backend.services.pdf_security</a>
  &#8226;   <a href="#backend.services.pdf_splitter">backend.services.pdf_splitter</a>
  &#8226;   <a href="#backend.services.pdf_watcher">backend.services.pdf_watcher</a>
+ &#8226;   <a href="#charset_normalizer.api">charset_normalizer.api</a>
+ &#8226;   <a href="#charset_normalizer.cd">charset_normalizer.cd</a>
+ &#8226;   <a href="#charset_normalizer.legacy">charset_normalizer.legacy</a>
+ &#8226;   <a href="#charset_normalizer.models">charset_normalizer.models</a>
+ &#8226;   <a href="#charset_normalizer.utils">charset_normalizer.utils</a>
  &#8226;   <a href="#copyreg">copyreg</a>
  &#8226;   <a href="#cv2.mat_wrapper">cv2.mat_wrapper</a>
  &#8226;   <a href="#cv2.typing">cv2.typing</a>
@@ -44356,6 +44669,7 @@ imported by:
  &#8226;   <a href="#PyPDF2._utils">PyPDF2._utils</a>
  &#8226;   <a href="#PyPDF2.filters">PyPDF2.filters</a>
  &#8226;   <a href="#PyPDF2.types">PyPDF2.types</a>
+ &#8226;   <a href="#charset_normalizer.legacy">charset_normalizer.legacy</a>
  &#8226;   <a href="#docx.blkcntnr">docx.blkcntnr</a>
  &#8226;   <a href="#docx.dml.color">docx.dml.color</a>
  &#8226;   <a href="#docx.enum.base">docx.enum.base</a>
@@ -44865,6 +45179,7 @@ imported by:
 imported by:
     <a href="#_pyrepl.input">_pyrepl.input</a>
  &#8226;   <a href="#_pyrepl.utils">_pyrepl.utils</a>
+ &#8226;   <a href="#charset_normalizer.utils">charset_normalizer.utils</a>
  &#8226;   <a href="#encodings.idna">encodings.idna</a>
  &#8226;   <a href="#fire.console.console_attr">fire.console.console_attr</a>
  &#8226;   <a href="#fontTools.unicode">fontTools.unicode</a>
@@ -45642,6 +45957,7 @@ imported by:
  &#8226;   <a href="#asyncio.unix_events">asyncio.unix_events</a>
  &#8226;   <a href="#asyncio.windows_utils">asyncio.windows_utils</a>
  &#8226;   <a href="#calendar">calendar</a>
+ &#8226;   <a href="#charset_normalizer.legacy">charset_normalizer.legacy</a>
  &#8226;   <a href="#codecs">codecs</a>
  &#8226;   <a href="#codeop">codeop</a>
  &#8226;   <a href="#ctypes">ctypes</a>

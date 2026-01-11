@@ -33,6 +33,28 @@ class PDFConverter:
         progress_callback: Optional[Callable[[int, str], None]] = None
     ) -> dict:
         """Convierte PDF a Word preservando el layout"""
+        # Validaciones
+        input_file = Path(input_path)
+        if not input_file.exists():
+            raise FileNotFoundError(f"El archivo no existe: {input_path}")
+        
+        if not input_file.suffix.lower() == '.pdf':
+            raise ValueError(f"El archivo debe ser un PDF: {input_path}")
+        
+        output_file = Path(output_path)
+        if output_file.suffix.lower() != '.docx':
+            raise ValueError(f"El archivo de salida debe tener extensión .docx: {output_path}")
+        
+        # Validar directorio de salida
+        output_dir = output_file.parent
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+            test_file = output_dir / '.write_test'
+            test_file.write_text('test')
+            test_file.unlink()
+        except (PermissionError, OSError) as e:
+            raise PermissionError(f"No se puede escribir en el directorio de salida: {output_dir}") from e
+        
         try:
             self.logger.info(f"Convirtiendo PDF a Word: {input_path}")
             cv = Converter(input_path)
@@ -72,6 +94,30 @@ class PDFConverter:
         progress_callback: Optional[Callable[[int], None]] = None
     ) -> dict:
         """Convierte cada página del PDF en una imagen"""
+        # Validaciones
+        input_file = Path(input_path)
+        if not input_file.exists():
+            raise FileNotFoundError(f"El archivo no existe: {input_path}")
+        
+        if not input_file.suffix.lower() == '.pdf':
+            raise ValueError(f"El archivo debe ser un PDF: {input_path}")
+        
+        if dpi < 72 or dpi > 1200:
+            raise ValueError(f"DPI debe estar entre 72 y 1200: {dpi}")
+        
+        valid_formats = ['PNG', 'JPEG', 'JPG']
+        if image_format.upper() not in valid_formats:
+            raise ValueError(f"Formato de imagen inválido. Debe ser uno de: {valid_formats}")
+        
+        output_path = Path(output_dir)
+        try:
+            output_path.mkdir(parents=True, exist_ok=True)
+            test_file = output_path / '.write_test'
+            test_file.write_text('test')
+            test_file.unlink()
+        except (PermissionError, OSError) as e:
+            raise PermissionError(f"No se puede escribir en el directorio de salida: {output_dir}") from e
+        
         try:
             self.logger.info(f"Convirtiendo PDF a Imágenes: {input_path}")
             Path(output_dir).mkdir(exist_ok=True, parents=True)

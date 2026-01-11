@@ -48,8 +48,28 @@ class PDFCompressor:
         progress_callback: Optional[Callable[[int], None]] = None
     ) -> dict:
         """Comprime un PDF reduciendo la calidad de imágenes y optimizando streams"""
+        # Validaciones
         if quality_level not in PDFCompressor.COMPRESSION_LEVELS:
             raise ValueError(f"Nivel de compresión inválido: {quality_level}")
+        
+        input_file = Path(input_path)
+        if not input_file.exists():
+            raise FileNotFoundError(f"El archivo no existe: {input_path}")
+        
+        if not input_file.suffix.lower() == '.pdf':
+            raise ValueError(f"El archivo debe ser un PDF: {input_path}")
+        
+        # Validar que el directorio de salida es escribible
+        output_file = Path(output_path)
+        output_dir = output_file.parent
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+            # Probar escritura
+            test_file = output_dir / '.write_test'
+            test_file.write_text('test')
+            test_file.unlink()
+        except (PermissionError, OSError) as e:
+            raise PermissionError(f"No se puede escribir en el directorio de salida: {output_dir}") from e
         
         self.logger.info(f"Comprimiendo PDF: {input_path} (Nivel: {quality_level})")
         

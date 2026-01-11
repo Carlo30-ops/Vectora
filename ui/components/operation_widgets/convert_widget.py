@@ -82,10 +82,22 @@ class ConvertWidget(BaseOperationWidget):
         self.setup_ui()
     
     def setup_ui(self):
-        """Configura la interfaz"""
-        # Selector de Modo
-        mode_layout = QHBoxLayout()
-        mode_layout.addWidget(QLabel("Modo de Conversión:"))
+        """Configura la interfaz - Look Premium"""
+        # Cambiar icono de la base
+        icon = IconHelper.get_icon("refresh-cw", color="#FFFFFF")
+        if not icon.isNull():
+            self.icon_lbl.setPixmap(icon.pixmap(36, 36))
+            
+        # Global Mode Selector
+        mode_panel = QFrame()
+        mode_panel.setObjectName("glassContainer")
+        mode_panel.setStyleSheet("padding: 16px;")
+        mpl = QHBoxLayout(mode_panel)
+        
+        mode_lbl = QLabel("Seleccione modo")
+        mode_lbl.setFont(QFont("Inter", 11, QFont.Bold))
+        mpl.addWidget(mode_lbl)
+        
         self.mode_combo = QComboBox()
         self.mode_combo.addItems([
             "PDF a Word (.docx)",
@@ -94,74 +106,117 @@ class ConvertWidget(BaseOperationWidget):
             "Word a PDF"
         ])
         self.mode_combo.currentIndexChanged.connect(self.on_mode_changed)
-        mode_layout.addWidget(self.mode_combo, 1)
-        self.config_layout.addLayout(mode_layout)
+        mpl.addWidget(self.mode_combo, 1)
+        self.config_layout.addWidget(mode_panel)
         
         # Área dinámica de configuración
         self.options_stack = QStackedWidget()
         
-        # 1. Opciones comunes (solo archivo)
+        # 1. Single File Dropzone (PDF->Word, Word->PDF)
         self.single_file_widget = QWidget()
         sf_layout = QVBoxLayout(self.single_file_widget)
-        sf_layout.setContentsMargins(0, 10, 0, 0)
+        sf_layout.setContentsMargins(0, 0, 0, 0)
         
-        self.file_btn = QPushButton("📄 Seleccionar Archivo")
+        self.sf_dropzone = QFrame()
+        self.sf_dropzone.setObjectName("glassContainer")
+        self.sf_dropzone.setMinimumHeight(150)
+        self.sf_dropzone.setStyleSheet("border: 2px dashed {{BORDER}}; background-color: {{HOVER}};")
+        
+        dzl = QVBoxLayout(self.sf_dropzone)
+        dzl.setAlignment(Qt.AlignCenter)
+        
+        self.file_label = QLabel("Arrastra tu archivo aquí para comenzar")
+        self.file_label.setFont(QFont("Inter", 11))
+        self.file_label.setStyleSheet("color: {{TEXT_SECONDARY}};")
+        dzl.addWidget(self.file_label)
+        
+        self.file_btn = QPushButton("Seleccionar Archivo")
+        self.file_btn.setCursor(Qt.PointingHandCursor)
+        self.file_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: {{ACCENT}};
+                border: 1px solid {{ACCENT}};
+                border-radius: 8px;
+                padding: 8px 20px;
+                font-weight: 600;
+            }
+            QPushButton:hover { background-color: {{ACCENT}}; color: {{ACCENT_TEXT}}; }
+        """)
         self.file_btn.clicked.connect(self.select_single_file)
-        self.file_label = QLabel("Ningún archivo seleccionado")
-        self.file_label.setStyleSheet("color: #6b7280;")
+        dzl.addWidget(self.file_btn, 0, Qt.AlignCenter)
+        sf_layout.addWidget(self.sf_dropzone)
         
-        sf_layout.addWidget(self.file_btn)
-        sf_layout.addWidget(self.file_label)
-        sf_layout.addStretch()
-        
-        # 2. Opciones PDF a Imágenes (DPI, Formato)
+        # 2. PDF to Images (DPI, Format)
         self.pdf_img_widget = QWidget()
         pi_layout = QVBoxLayout(self.pdf_img_widget)
-        pi_layout.setContentsMargins(0, 10, 0, 0)
+        pi_layout.setContentsMargins(0, 0, 0, 0)
+        pi_layout.setSpacing(16)
         
-        # Reusamos los controles de archivo
-        self.pi_file_btn = QPushButton("📄 Seleccionar PDF")
+        # Reusamos dropzone visualmente (solo info)
+        self.pi_info_box = QFrame()
+        self.pi_info_box.setObjectName("glassContainer")
+        self.pi_info_box.setStyleSheet("border: 2px dashed {{BORDER}}; background-color: {{HOVER}}; padding: 20px;")
+        pil = QVBoxLayout(self.pi_info_box)
+        pil.setAlignment(Qt.AlignCenter)
+        
+        self.pi_file_label = QLabel("PDF para extraer imágenes")
+        self.pi_file_label.setFont(QFont("Inter", 11))
+        self.pi_file_label.setStyleSheet("color: {{TEXT_SECONDARY}};")
+        pil.addWidget(self.pi_file_label)
+        
+        self.pi_file_btn = QPushButton("Cargar PDF")
+        self.pi_file_btn.setCursor(Qt.PointingHandCursor)
+        self.pi_file_btn.setStyleSheet("background: transparent; border: 1px solid {{ACCENT}}; color: {{ACCENT}}; border-radius: 8px; padding: 6px 16px;")
         self.pi_file_btn.clicked.connect(self.select_single_file)
-        self.pi_file_label = QLabel("Ningún archivo seleccionado")
+        pil.addWidget(self.pi_file_btn, 0, Qt.AlignCenter)
+        pi_layout.addWidget(self.pi_info_box)
         
-        opts_layout = QHBoxLayout()
-        opts_layout.addWidget(QLabel("DPI:"))
+        # Quality Settings
+        pi_opts = QFrame()
+        pi_opts.setObjectName("glassContainer")
+        pi_opts.setStyleSheet("padding: 16px;")
+        phol = QHBoxLayout(pi_opts)
+        
+        phol.addWidget(QLabel("DPI"))
         self.dpi_spin = QSpinBox()
         self.dpi_spin.setRange(72, 600)
         self.dpi_spin.setValue(150)
-        self.dpi_spin.setSingleStep(50)
-        opts_layout.addWidget(self.dpi_spin)
+        phol.addWidget(self.dpi_spin)
         
-        opts_layout.addWidget(QLabel("Formato:"))
+        phol.addSpacing(20)
+        phol.addWidget(QLabel("Formato"))
         self.format_combo = QComboBox()
         self.format_combo.addItems(["PNG", "JPEG"])
-        opts_layout.addWidget(self.format_combo)
+        phol.addWidget(self.format_combo)
+        pi_layout.addWidget(pi_opts)
         
-        pi_layout.addWidget(self.pi_file_btn)
-        pi_layout.addWidget(self.pi_file_label)
-        pi_layout.addLayout(opts_layout)
-        pi_layout.addStretch()
-        
-        # 3. Opciones Imágenes a PDF (Lista de archivos)
+        # 3. Images to PDF (List)
         self.img_pdf_widget = QWidget()
         ip_layout = QVBoxLayout(self.img_pdf_widget)
-        ip_layout.setContentsMargins(0, 10, 0, 0)
+        ip_layout.setContentsMargins(0, 0, 0, 0)
+        ip_layout.setSpacing(16)
         
-        self.imgs_btn = QPushButton("🖼️ Agregar Imágenes")
+        self.imgs_btn = QPushButton("+ Agregar Imágenes")
+        self.imgs_btn.setCursor(Qt.PointingHandCursor)
+        self.imgs_btn.setStyleSheet("background: transparent; border: 1px solid {{ACCENT}}; color: {{ACCENT}}; border-radius: 10px; padding: 10px 20px; font-weight: 600;")
         self.imgs_btn.clicked.connect(self.select_images)
+        ip_layout.addWidget(self.imgs_btn)
         
         self.imgs_list = QListWidget()
-        self.imgs_list.setFixedHeight(100)
-        
-        ip_layout.addWidget(self.imgs_btn)
+        self.imgs_list.setStyleSheet("border-radius: 12px; border: 1px solid {{BORDER}}; padding: 8px;")
+        self.imgs_list.setFixedHeight(140)
         ip_layout.addWidget(self.imgs_list)
         
         # Agregar widgets al stack
-        self.options_stack.addWidget(self.single_file_widget) # 0: PDF->Word y Word->PDF
-        self.options_stack.addWidget(self.pdf_img_widget)    # 1: PDF->Images
-        self.options_stack.addWidget(self.img_pdf_widget)    # 2: Images->PDF
+        self.options_stack.addWidget(self.single_file_widget) 
+        self.options_stack.addWidget(self.pdf_img_widget)    
+        self.options_stack.addWidget(self.img_pdf_widget)    
         
         self.config_layout.addWidget(self.options_stack)
+        
+        self.current_file = None
+        self.image_files = []
         
         # Inicializar estado
         self.current_file = None

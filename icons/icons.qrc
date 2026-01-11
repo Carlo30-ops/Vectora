@@ -32,5 +32,26 @@
     <file>file-search.svg</file>
     <file>languages.svg</file>
     <file>folder.svg</file>
+    <file>settings.svg</file>
+    <file>trash-2.svg</file>
+    <file>edit-2.svg</file>
+    <file>more-vertical.svg</file>
+    <file>layout-dashboard.svg</file>
+    <file>sun.svg</file>
+    <file>moon.svg</file>
+    <file>github.svg</file>
+    <file>info.svg</file>
+    <file>arrow-left.svg</file>
+    <file>layers.svg</file>
+    <file>minimize-2.svg</file>
+    <file>check.svg</file>
+    <file>chevron-down.svg</file>
+    <file>search.svg</file>
+    <file>zap.svg</file>
+    <file>plus.svg</file>
+    <file>trash.svg</file>
+    <file>layout.svg</file>
+    <file>merge.svg</file>
+    <file>split.svg</file>
 </qresource>
 </RCC>
