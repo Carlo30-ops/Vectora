@@ -19,16 +19,24 @@
 - **📉 Compresión**: Reduce el tamaño de tus archivos manteniendo la calidad.
 - **🔄 Conversión**: Transforma PDF a Word, Imágenes a PDF y viceversa.
 - **👁️ OCR (Reconocimiento de Texto)**: Extrae texto de imágenes y PDFs escaneados.
-- **🛡️ Seguridad**: Encripta y desencripta tus documentos.
-- **🎨 Tema Dinámico**: Modo claro y oscuro integrados.
+- **Control Inteligente**: Script `vectora.bat` para gestión integral.
+- **Calidad de Código**: Configuración estandarizada con `pyproject.toml`.
 
----
+## 📚 Documentación
 
-## 🚀 Instalación y Uso
+La documentación técnica detallada se encuentra en el directorio `/docs`:
 
-### Prerrequisitos
+- [Análisis del Proyecto](docs/ANALISIS_PROYECTO.md)
+- [Documentación Técnica](docs/DOCUMENTACION_TECNICA_LOCALPDF_V5.md)
+- [Plan de Mejoramiento](docs/PLAN_MEJORAMIENTO.md)
+- [Guía de Contribución](CONTRIBUTING.md)
 
-- Python 3.10 o superior
+## 🛠️ Desarrollo
+
+### Pre-requisitos
+
+- Python 3.10+
+- Entorno virtual (venv)
 - [Tesseract OCR](https://github.com/UB-Mannheim/tesseract/wiki) (para funciones de OCR)
 - [Poppler](https://github.com/oschwartz10612/poppler-windows/releases/) (para manipulación de imágenes PDF)
 

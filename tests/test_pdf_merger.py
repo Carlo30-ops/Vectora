@@ -26,8 +26,8 @@ class TestPDFMerger:
         result = merger.merge_pdfs(input_files, output_path)
         
         # Assert
-        assert result['success'] is True
-        assert result['data']['total_files'] == 2
+        assert result.success is True
+        assert result.data['total_files'] == 2
         assert_pdf_exists(output_path)
         # PDF 1 tiene 1 página, PDF 2 tiene 2 páginas = 3 total
         assert_pdf_pages(output_path, 3)
@@ -42,8 +42,8 @@ class TestPDFMerger:
         result = merger.merge_pdfs(input_files, output_path)
         
         # Assert
-        assert result['success'] is True
-        assert result['data']['total_files'] == 3
+        assert result.success is True
+        assert result.data['total_files'] == 3
         assert_pdf_exists(output_path)
         # 1 + 2 + 3 = 6 páginas total
         assert_pdf_pages(output_path, 6)
@@ -110,12 +110,13 @@ class TestPDFMerger:
         result = merger.merge_pdfs(input_files, output_path)
         
         # Assert
-        assert 'success' in result
-        assert 'message' in result
-        assert 'data' in result
-        assert 'data' in result and 'output_path' in result['data']
-        assert 'data' in result and 'total_files' in result['data']
-        assert result['success'] is True
+        # Assert
+        assert hasattr(result, 'success')
+        assert hasattr(result, 'message')
+        assert hasattr(result, 'data')
+        assert result.data is not None and 'output_path' in result.data
+        assert result.data is not None and 'total_files' in result.data
+        assert result.success is True
     
     @pytest.mark.integration
     def test_merge_order_is_preserved(self, merger, temp_dir, output_path):
@@ -141,5 +142,6 @@ class TestPDFMerger:
         result = merger.merge_pdfs(files, output_path)
         
         # Assert
-        assert result['success'] is True
+        # Assert
+        assert result.success is True
         assert_pdf_pages(output_path, 6)  # 1 + 3 + 2 = 6 páginas

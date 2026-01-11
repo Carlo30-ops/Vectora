@@ -24,7 +24,7 @@ def test_encrypt_pdf(security, sample_pdf, output_path):
         mock_pdf.save.assert_called()
         encryption_arg = mock_pdf.save.call_args[1]['encryption']
         assert encryption_arg.owner == pwd
-        assert result['success'] is True
+        assert result.success is True
 
 def test_decrypt_pdf(security, sample_pdf, output_path):
     """Test desencriptación de PDF"""
@@ -38,7 +38,7 @@ def test_decrypt_pdf(security, sample_pdf, output_path):
         
         mock_open.assert_called_with(str(sample_pdf), password=pwd)
         mock_pdf.save.assert_called_with(output_path)
-        assert result['success'] is True
+        assert result.success is True
 
 def test_password_validation(security):
     """Test validador de fortaleza de contraseña"""

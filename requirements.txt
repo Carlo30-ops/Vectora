@@ -25,3 +25,12 @@ watchdog==6.0.0
 
 # === Build Tools ===
 pyinstaller==6.17.0
+
+# === Development Tools ===
+pytest==8.3.4
+pytest-cov==6.0.0
+black==24.10.0
+isort==5.13.2
+mypy==1.14.1
+pylint==3.3.3
+hatchling==1.27.0

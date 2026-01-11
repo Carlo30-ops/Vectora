@@ -1,11 +1,22 @@
 """
 Componentes UI comunes: Animaciones, Iconos, Botones estilizados
 """
-from PySide6.QtWidgets import QPushButton, QFrame, QLabel, QGraphicsOpacityEffect, QStackedWidget
-from PySide6.QtCore import QPropertyAnimation, QRect, QEasingCurve, QSize, Qt, QParallelAnimationGroup, QPoint
-from PySide6.QtGui import QIcon, QColor, QPixmap, QPainter
+
 import os
 import sys
+
+from PySide6.QtCore import (
+    QEasingCurve,
+    QParallelAnimationGroup,
+    QPoint,
+    QPropertyAnimation,
+    QRect,
+    QSize,
+    Qt,
+)
+from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
+from PySide6.QtWidgets import QFrame, QGraphicsOpacityEffect, QLabel, QPushButton, QStackedWidget
+
 
 class IconHelper:
     @staticmethod
@@ -16,9 +27,9 @@ class IconHelper:
         """
         try:
             from icons.icons import get_icon_qicon
-            
+
             icon = get_icon_qicon(name, color)
-            
+
             if active_color:
                 # Generar pixmap para estado activo (Checked/On)
                 active_icon = get_icon_qicon(name, active_color)
@@ -26,7 +37,7 @@ class IconHelper:
                 # QIcon.Mode.Normal, QIcon.State.On
                 pixmap_on = active_icon.pixmap(24, 24)
                 icon.addPixmap(pixmap_on, QIcon.Normal, QIcon.On)
-                
+
             return icon
         except Exception as e:
             print(f"Error cargando icono '{name}': {e}")
@@ -35,13 +46,16 @@ class IconHelper:
 
 class AnimatedButton(QPushButton):
     """Botón con animación de escala sutil"""
+
     def __init__(self, text="", parent=None, is_primary=False):
         super().__init__(text, parent)
         self.is_primary = is_primary
         self.setCursor(Qt.PointingHandCursor)
 
+
 class AnimatedCard(QPushButton):
     """Card con efecto de elevación suave"""
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setCursor(Qt.PointingHandCursor)
@@ -53,10 +67,11 @@ class FadingStackedWidget(QStackedWidget):
     """
     QStackedWidget con animación de desvanecimiento (Fade) al cambiar de página.
     """
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.fade_duration = 300
-        self.animation_type = "fade" # fade, slide
+        self.animation_type = "fade"  # fade, slide
 
     def setCurrentIndex(self, index):
         self.fade_transition(index)
@@ -71,7 +86,7 @@ class FadingStackedWidget(QStackedWidget):
 
         current_widget = self.currentWidget()
         next_widget = self.widget(index)
-        
+
         if not current_widget:
             super().setCurrentIndex(index)
             return
@@ -79,33 +94,33 @@ class FadingStackedWidget(QStackedWidget):
         # 1. Capturar imagen del widget actual
         pixmap = QPixmap(self.size())
         current_widget.render(pixmap)
-        
+
         # 2. Crear un Label superpuesto con esa imagen
         self.overlay_label = QLabel(self)
         self.overlay_label.setPixmap(pixmap)
         self.overlay_label.setGeometry(self.rect())
         self.overlay_label.show()
-        
+
         # 3. Cambiar la página real debajo
         super().setCurrentIndex(index)
-        
+
         # 4. Configurar efecto de opacidad en el Label
         self.effect = QGraphicsOpacityEffect(self.overlay_label)
         self.overlay_label.setGraphicsEffect(self.effect)
-        
+
         # 5. Animar opacidad de 1.0 a 0.0
         self.anim = QPropertyAnimation(self.effect, b"opacity")
         self.anim.setDuration(self.fade_duration)
         self.anim.setStartValue(1.0)
         self.anim.setEndValue(0.0)
         self.anim.setEasingCurve(QEasingCurve.OutQuad)
-        
+
         # 6. Limpiar al terminar
         self.anim.finished.connect(self.cleanup)
         self.anim.start()
 
     def cleanup(self):
-        if hasattr(self, 'overlay_label'):
+        if hasattr(self, "overlay_label"):
             self.overlay_label.hide()
             self.overlay_label.deleteLater()
             del self.overlay_label
