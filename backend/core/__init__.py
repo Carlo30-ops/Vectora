@@ -2,21 +2,20 @@
 Módulo core de Vectora
 Contiene componentes centrales del sistema
 """
-
-from .exceptions import (
-    ConfigurationError,
-    FileAccessError,
-    PDFProcessingError,
-    PDFValidationError,
-    VectoraException,
-)
 from .operation_result import OperationResult
+from .exceptions import (
+    VectoraException,
+    PDFValidationError,
+    PDFProcessingError,
+    ConfigurationError,
+    FileAccessError
+)
 
 __all__ = [
-    "OperationResult",
-    "VectoraException",
-    "PDFValidationError",
-    "PDFProcessingError",
-    "ConfigurationError",
-    "FileAccessError",
+    'OperationResult',
+    'VectoraException',
+    'PDFValidationError',
+    'PDFProcessingError',
+    'ConfigurationError',
+    'FileAccessError'
 ]

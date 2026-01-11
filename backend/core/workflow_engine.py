@@ -28,7 +28,7 @@ class ActionType(Enum):
 
 
 class WorkflowStep:
-    def __init__(self, action: ActionType, params: Dict[str, Any] = None):
+    def __init__(self, action: ActionType, params: Optional[Dict[str, Any]] = None):
         self.id = str(uuid.uuid4())[:8]
         self.action = action
         self.params = params or {}

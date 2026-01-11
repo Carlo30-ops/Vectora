@@ -3,10 +3,15 @@ Widget para dividir PDFs
 Permite extraer rangos, páginas específicas o dividir cada N páginas
 """
 
-from PySide6.QtCore import QThread, Signal
+from pathlib import Path
+import os
+
+from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent, QFont
 from PySide6.QtWidgets import (
     QButtonGroup,
     QFileDialog,
+    QFrame,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -18,6 +23,7 @@ from PySide6.QtWidgets import (
 
 from backend.services.pdf_splitter import PDFSplitter
 from config.settings import settings
+from ui.components.ui_helpers import IconHelper
 from utils.file_handler import FileHandler
 
 from .base_operation import BaseOperationWidget
@@ -39,26 +45,29 @@ class SplitWorker(QThread):
 
     def run(self):
         try:
+            # Instantiate service
+            splitter = PDFSplitter()
+            
             if self.mode == "range":
-                result = PDFSplitter.split_by_range(
+                result = splitter.split_by_range(
                     self.input_file,
                     self.output_path,
                     self.config["start"],
                     self.config["end"],
-                    self.progress_updated.emit,
+                    progress_callback=self.progress_updated.emit,
                 )
             elif self.mode == "pages":
-                result = PDFSplitter.split_by_pages(
+                result = splitter.split_by_pages(
                     self.input_file,
                     self.output_path,
                     self.config["pages"],
-                    self.progress_updated.emit,
+                    progress_callback=self.progress_updated.emit,
                 )
             else:  # every
-                result = PDFSplitter.split_every_n_pages(
-                    self.input_file, self.output_path, self.config["n"], self.progress_updated.emit
+                result = splitter.split_every_n_pages(
+                    self.input_file, self.output_path, self.config["n"], progress_callback=self.progress_updated.emit
                 )
-            self.finished.emit(result)
+            self.finished.emit(result.to_dict())
         except Exception as e:
             self.error.emit(str(e))
 
@@ -78,10 +87,11 @@ class SplitWidget(BaseOperationWidget):
         if not icon.isNull():
             self.icon_lbl.setPixmap(icon.pixmap(36, 36))
 
-        # Selección de archivo - Dropzone simple
+        # Selección de archivo - Dropzone simple con drag & drop
         drop_area = QFrame()
         drop_area.setObjectName("glassContainer")
         drop_area.setMinimumHeight(120)
+        drop_area.setAcceptDrops(True)  # Habilitar drag & drop
         drop_area.setStyleSheet(
             """
             QFrame {
@@ -124,6 +134,9 @@ class SplitWidget(BaseOperationWidget):
         dal.addWidget(btn, 0, Qt.AlignCenter)
 
         self.config_layout.addWidget(drop_area)
+        
+        # Implementar drag & drop
+        self._setup_drag_drop(drop_area)
 
         # Opciones en Horizontal para mejor uso de espacio
         options_layout = QHBoxLayout()
@@ -177,17 +190,110 @@ class SplitWidget(BaseOperationWidget):
         options_layout.addWidget(config_box, 1)
         self.config_layout.addLayout(options_layout)
 
+    def _setup_drag_drop(self, drop_area: QFrame):
+        """Configura drag & drop en el área de drop"""
+        drop_area._accepted_extensions = ['.pdf']
+        drop_area._multiple = False
+        
+        def dragEnterEvent(event: QDragEnterEvent):
+            if event.mimeData().hasUrls():
+                urls = event.mimeData().urls()
+                valid_files = [
+                    url.toLocalFile() for url in urls
+                    if url.toLocalFile().lower().endswith('.pdf')
+                ]
+                if valid_files:
+                    event.acceptProposedAction()
+                    drop_area.setStyleSheet(
+                        drop_area.styleSheet().replace(
+                            "border: 2px dashed {{BORDER}}",
+                            "border: 2px solid {{ACCENT}}"
+                        ) + "\nbackground-color: {{ACCENT}}20;"
+                    )
+                else:
+                    event.ignore()
+            else:
+                event.ignore()
+        
+        def dragMoveEvent(event: QDragMoveEvent):
+            if event.mimeData().hasUrls():
+                urls = event.mimeData().urls()
+                valid_files = [
+                    url.toLocalFile() for url in urls
+                    if url.toLocalFile().lower().endswith('.pdf')
+                ]
+                if valid_files:
+                    event.acceptProposedAction()
+                else:
+                    event.ignore()
+            else:
+                event.ignore()
+        
+        def dragLeaveEvent(event):
+            drop_area.setStyleSheet(
+                """
+                QFrame {
+                    border: 2px dashed {{BORDER}};
+                    background-color: {{HOVER}};
+                }
+                QFrame:hover {
+                    border-color: {{ACCENT}};
+                }
+            """
+            )
+        
+        def dropEvent(event: QDropEvent):
+            drop_area.setStyleSheet(
+                """
+                QFrame {
+                    border: 2px dashed {{BORDER}};
+                    background-color: {{HOVER}};
+                }
+                QFrame:hover {
+                    border-color: {{ACCENT}};
+                }
+            """
+            )
+            if event.mimeData().hasUrls():
+                urls = event.mimeData().urls()
+                files = [
+                    url.toLocalFile() for url in urls
+                    if url.toLocalFile().lower().endswith('.pdf')
+                ]
+                if files:
+                    event.acceptProposedAction()
+                    # Tomar solo el primer archivo
+                    self.on_file_dropped(files[0])
+                else:
+                    event.ignore()
+            else:
+                event.ignore()
+        
+        drop_area.dragEnterEvent = dragEnterEvent
+        drop_area.dragMoveEvent = dragMoveEvent
+        drop_area.dragLeaveEvent = dragLeaveEvent
+        drop_area.dropEvent = dropEvent
+    
+    def on_file_dropped(self, file_path: str):
+        """Maneja archivo soltado"""
+        self.input_file = file_path
+        self.file_label.setText(f"📄 {Path(file_path).name}")
+    
     def select_file(self):
         """Seleccionar archivo PDF"""
         file, _ = QFileDialog.getOpenFileName(self, "Seleccionar PDF", "", "PDF (*.pdf)")
         if file:
-            self.input_file = file
-            self.file_label.setText(f"📄 {file.split('/')[-1]}")
+            self.on_file_dropped(file)
 
     def start_processing(self):
         """Inicia la división"""
         if not self.input_file:
             self.show_error("Selecciona un archivo PDF primero")
+            return
+        
+        # Validar que el archivo existe
+        if not Path(self.input_file).exists():
+            self.show_error("El archivo seleccionado no existe")
             return
 
         mode_id = self.mode_group.checkedId()
@@ -200,7 +306,7 @@ class SplitWidget(BaseOperationWidget):
         else:
             input_base = input_name[:-4] if input_name.lower().endswith(".pdf") else input_name
 
-        output_dir = settings.get_output_directory()
+        output_dir = Path(settings.get_output_directory())
         default_name = output_dir / f"{input_base}_split.pdf"
 
         output_file, _ = QFileDialog.getSaveFileName(
@@ -217,24 +323,31 @@ class SplitWidget(BaseOperationWidget):
                 config["start"] = int(self.range_start.text())
                 config["end"] = int(self.range_end.text())
                 mode = "range"
-            except:
+            except ValueError:
                 self.show_error("Ingresa valores numéricos válidos")
                 return
+            except Exception as e:
+                self.show_error(f"Error al leer valores: {str(e)}")
+                return
         elif mode_id == 1:  # Pages
+            if not self.pages_spec.text().strip():
+                self.show_error("Ingresa una especificación de páginas válida")
+                return
             config["pages"] = self.pages_spec.text()
             mode = "pages"
         else:  # Every
             try:
-                config["n"] = int(self.every_n.text())
+                n_value = int(self.every_n.text())
+                if n_value <= 0:
+                    self.show_error("El valor debe ser mayor que 0")
+                    return
+                config["n"] = n_value
                 mode = "every"
-                # Para split every, la salida suele ser una carpeta o sufijos
-                # En este caso asumimos que el backend maneja sufijos si es un solo archivo
-                # O podríamos pedir un directorio si split_every genera múltiples archivos
-                # Revisemos la implementación de SplitWorker/PDFSplitter para 'every'
-                # El worker usa settings.OUTPUT_DIR original... debemos pasar el directorio de salida del archivo seleccionado
-                # Si output_file es "C:/.../doc.pdf", el splitter seguramente usará eso como base
-            except:
+            except ValueError:
                 self.show_error("Ingresa un número válido")
+                return
+            except Exception as e:
+                self.show_error(f"Error al leer valor: {str(e)}")
                 return
 
         # Ajuste específico para 'every' que necesita un directorio base

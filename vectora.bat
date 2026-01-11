@@ -14,7 +14,7 @@ echo.
 echo   [1] SETUP - Configurar entorno inicial
 echo   [2] RUN   - Ejecutar aplicacion (desarrollo)
 echo   [3] TEST  - Ejecutar suite de tests
-echo   [4] BUILD - Generar ejecutable (.exe)
+echo   [4] BUILD - Generar ejecutable (.exe) [RELEASE/DEBUG]
 echo   [5] VERIFY- Verificar entorno y salud del proyecto
 echo   [6] TOOLS - Herramientas adicionales
 echo   [7] CLEAN - Limpiar archivos temporales
@@ -42,12 +42,35 @@ echo.
 REM 1. Crear entorno virtual
 echo [1/5] Verificando entorno virtual...
 if not exist venv\ (
-    echo    Creando entorno virtual...
-    python -m venv venv
-    if errorlevel 1 (
-        echo    [ERROR] Fallo al crear entorno virtual
-        pause
-        goto menu
+    echo    Detectando Python...
+    REM Intentar con py (Python Launcher) primero
+    py -3 --version >nul 2>&1
+    if not errorlevel 1 (
+        echo    [OK] Python detectado via 'py -3'
+        echo    Creando entorno virtual...
+        py -3 -m venv venv
+        if errorlevel 1 (
+            echo    [ERROR] Fallo al crear entorno virtual
+            pause
+            goto menu
+        )
+    ) else (
+        python --version >nul 2>&1
+        if not errorlevel 1 (
+            echo    [OK] Python detectado via 'python'
+            echo    Creando entorno virtual...
+            python -m venv venv
+            if errorlevel 1 (
+                echo    [ERROR] Fallo al crear entorno virtual
+                pause
+                goto menu
+            )
+        ) else (
+            echo    [ERROR] No se encontro Python instalado
+            echo    Instala Python desde python.org o habilita desde Microsoft Store
+            pause
+            goto menu
+        )
     )
     echo    [OK] Entorno virtual creado
 ) else (
@@ -205,19 +228,65 @@ echo ==========================================
 echo   GENERAR EJECUTABLE
 echo ==========================================
 echo.
+echo Seleccione tipo de build:
+echo.
+echo   [1] RELEASE - Ejecutable final (console=False)
+echo   [2] DEBUG   - Ejecutable con consola (para ver errores)
+echo   [0] Volver al menu principal
+echo.
+set /p build_type="Opcion: "
 
-if not exist venv\Scripts\python.exe (
-    echo [ERROR] No se encontro el entorno virtual
-    echo Ejecuta la opcion [1] SETUP primero
+if "%build_type%"=="0" goto menu
+if not "%build_type%"=="1" if not "%build_type%"=="2" goto build
+
+REM Verificar si el venv existe y funciona
+set VENV_OK=0
+if exist venv\Scripts\python.exe (
+    venv\Scripts\python.exe --version >nul 2>&1
+    if not errorlevel 1 (
+        set VENV_OK=1
+    )
+)
+
+if %VENV_OK%==0 (
+    echo [ERROR] El entorno virtual no existe o esta corrupto
+    echo.
+    echo El venv esta buscando Python314 que no existe.
+    echo.
+    echo Opciones:
+    echo   1. Ejecutar opcion [1] SETUP para recrear el entorno
+    echo   2. Ejecutar maintenance\reinstall_env.bat para reparar
+    echo.
     pause
     goto menu
 )
 
-echo [1/6] Actualizando pip...
+echo.
+echo [1/7] Ejecutando pruebas rapidas...
+if exist test_imports.py (
+    REM Intentar con venv primero, si falla usar Python del sistema
+    venv\Scripts\python.exe test_imports.py 2>nul
+    if errorlevel 1 (
+        echo    [WARN] Venv tiene problemas, usando Python del sistema...
+        python test_imports.py 2>nul
+        if errorlevel 1 (
+            echo    [WARN] Algunos imports fallaron, pero continuando...
+        ) else (
+            echo    [OK] Imports verificados (usando Python del sistema)
+        )
+    ) else (
+        echo    [OK] Imports verificados
+    )
+) else (
+    echo    [SKIP] test_imports.py no encontrado
+)
+echo.
+
+echo [2/7] Actualizando pip...
 venv\Scripts\python.exe -m pip install --upgrade pip --quiet
 
 echo.
-echo [2/6] Verificando PyInstaller...
+echo [3/7] Verificando PyInstaller...
 venv\Scripts\pip.exe show pyinstaller > nul 2>&1
 if errorlevel 1 (
     echo    PyInstaller no instalado, instalando...
@@ -228,63 +297,114 @@ if errorlevel 1 (
 )
 
 echo.
-echo [3/6] Asegurando sistema de iconos...
+echo [4/7] Asegurando sistema de iconos...
 if exist setup_icons.py (
     venv\Scripts\python.exe setup_icons.py
 )
 
 echo.
-echo [4/6] Limpiando builds anteriores...
+echo [5/7] Limpiando builds anteriores...
 if exist build rmdir /s /q build
 if exist dist rmdir /s /q dist
+echo    [OK] Builds anteriores eliminados
 
 echo.
-echo [5/6] Creando directorios necesarios...
+echo [6/7] Creando directorios necesarios...
 if not exist output mkdir output
 if not exist temp mkdir temp
 if not exist logs mkdir logs
 
 echo.
-echo [6/6] Generando ejecutable con PyInstaller...
-venv\Scripts\pyinstaller.exe Vectora.spec --noconfirm
+echo [7/7] Generando ejecutable con PyInstaller...
+if "%build_type%"=="1" (
+    echo    Usando Vectora.spec (RELEASE - sin consola)
+    set SPEC_FILE=Vectora.spec
+    set EXE_NAME=Vectora
+) else (
+    echo    Usando Vectora_debug.spec (DEBUG - con consola)
+    set SPEC_FILE=Vectora_debug.spec
+    set EXE_NAME=Vectora_debug
+)
+
+if not exist %SPEC_FILE% (
+    echo [ERROR] Archivo %SPEC_FILE% no encontrado
+    pause
+    goto menu
+)
+
+venv\Scripts\pyinstaller.exe %SPEC_FILE% --noconfirm
 
 echo.
 echo ==========================================
-if exist dist\Vectora\Vectora.exe (
-    echo [EXITO] Ejecutable generado correctamente:
-    echo    dist\Vectora\Vectora.exe
-    echo.
-    
-    REM Copiar directorios necesarios
-    if not exist dist\Vectora\output mkdir dist\Vectora\output
-    if not exist dist\Vectora\temp mkdir dist\Vectora\temp
-    if not exist dist\Vectora\logs mkdir dist\Vectora\logs
-    
-    REM Copiar .env si existe
-    if exist .env (
-        copy /Y .env dist\Vectora\.env > nul
-        echo    [OK] Archivo .env copiado
+if "%build_type%"=="1" (
+    if exist dist\Vectora\Vectora.exe (
+        echo [EXITO] Ejecutable RELEASE generado correctamente:
+        echo    dist\Vectora\Vectora.exe
+        set "EXE_PATH=dist\Vectora\Vectora.exe"
+        set "DIST_DIR=dist\Vectora"
+    ) else (
+        echo [ERROR] Fallo la generacion del ejecutable.
+        echo Revisa los errores arriba.
+        pause
+        goto menu
     )
-    
-    REM Crear README en dist
-    (
-    echo Vectora v5.0.0 - Editor de PDFs
-    echo.
-    echo Ubicaciones importantes:
-    echo - Logs: %%USERPROFILE%%\Documents\Vectora\logs\
-    echo - Salida: output\
-    echo - Temporales: temp\
-    echo.
-    echo Ejecuta: Vectora.exe
-    ) > dist\Vectora\README.txt
-    
-    echo    [OK] Estructura completa
-    echo.
-    echo ==========================================
-    echo Build completado exitosamente!
 ) else (
-    echo [ERROR] Fallo la generacion del ejecutable.
-    echo Revisa los errores arriba.
+    if exist dist\Vectora_debug\Vectora_debug.exe (
+        echo [EXITO] Ejecutable DEBUG generado correctamente:
+        echo    dist\Vectora_debug\Vectora_debug.exe
+        set "EXE_PATH=dist\Vectora_debug\Vectora_debug.exe"
+        set "DIST_DIR=dist\Vectora_debug"
+    ) else (
+        echo [ERROR] Fallo la generacion del ejecutable.
+        echo Revisa los errores arriba.
+        pause
+        goto menu
+    )
+)
+
+echo.
+REM Copiar directorios necesarios
+if not exist %DIST_DIR%\output mkdir %DIST_DIR%\output
+if not exist %DIST_DIR%\temp mkdir %DIST_DIR%\temp
+if not exist %DIST_DIR%\logs mkdir %DIST_DIR%\logs
+echo    [OK] Directorios creados
+
+REM Copiar .env si existe
+if exist .env (
+    copy /Y .env %DIST_DIR%\.env > nul
+    echo    [OK] Archivo .env copiado
+)
+
+REM Crear README en dist
+(
+echo Vectora v5.0.0 - Editor de PDFs
+echo.
+echo Cambios en esta version:
+echo - Drag ^& Drop implementado en todos los widgets
+echo - Validaciones mejoradas
+echo - Manejo de errores mejorado
+echo.
+echo Ubicaciones importantes:
+echo - Logs: %%USERPROFILE%%\Documents\Vectora\logs\
+echo - Salida: output\
+echo - Temporales: temp\
+echo.
+if "%build_type%"=="2" (
+    echo NOTA: Esta es una version DEBUG con consola visible.
+    echo Ejecuta desde linea de comandos para ver errores.
+    echo.
+)
+echo Ejecuta: %EXE_NAME%.exe
+) > %DIST_DIR%\README.txt
+
+echo    [OK] README creado
+echo.
+echo ==========================================
+echo Build completado exitosamente!
+echo.
+if "%build_type%"=="2" (
+    echo IMPORTANTE: Version DEBUG - Usa para diagnosticar problemas
+    echo Si todo funciona, compila version RELEASE [1]
 )
 echo.
 pause

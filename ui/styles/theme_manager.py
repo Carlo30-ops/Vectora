@@ -41,8 +41,12 @@ class ThemeManager(QObject):
                 qss_content = qss_content.replace(f"{{{{{key}}}}}", value)
 
             # Aplicar a la app global
-            if QApplication.instance():
-                QApplication.instance().setStyleSheet(qss_content)
+            app_instance = QApplication.instance()
+            if app_instance:
+                # Mypy no detecta setStyleSheet en QCoreApplication
+                from typing import cast
+
+                cast(QApplication, app_instance).setStyleSheet(qss_content)
                 self.theme_changed.emit(theme_name)
 
         except Exception as e:

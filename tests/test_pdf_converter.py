@@ -21,14 +21,14 @@ class TestPDFConverter:
         """Test conversión PDF a Word (Mock pdf2docx)"""
         output_path = output_path.replace('.pdf', '.docx')
         
-        with patch('backend.services.pdf_converter.Converter') as MockConverter:
+        with patch('pdf2docx.Converter') as MockConverter:
             mock_conv = MagicMock()
             MockConverter.return_value = mock_conv
             
             result = converter.pdf_to_word(str(sample_pdf), output_path)
             
-            assert result.success is True
-            assert result.data is not None and 'output_path' in result.data
+            assert result['success'] is True
+            assert 'output_path' in result
             mock_conv.convert.assert_called_once()
             mock_conv.close.assert_called_once()
     
@@ -44,10 +44,10 @@ class TestPDFConverter:
 
             result = converter.pdf_to_images(str(sample_pdf), output_dir)
 
-            assert result.success is True
-            assert result.data is not None and 'output_files' in result.data
-            assert len(result.data['output_files']) == 2
-            assert result.data['total_images'] == 2
+            assert result['success'] is True
+            assert 'output_files' in result
+            assert len(result['output_files']) == 2
+            assert result['total_images'] == 2
     
     @pytest.mark.unit
     def test_images_to_pdf(self, converter, temp_dir, output_path):
@@ -61,6 +61,6 @@ class TestPDFConverter:
 
             result = converter.images_to_pdf(img_list, output_path)
 
-            assert result.success is True
-            assert result.data is not None and 'output_path' in result.data
-            assert result.data['total_images'] == 2
+            assert result['success'] is True
+            assert 'output_path' in result
+            assert result['total_images'] == 2

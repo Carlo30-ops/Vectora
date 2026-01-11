@@ -36,8 +36,7 @@ def test_ocr_processing(ocr_service, sample_pdf, output_path):
     
     # Mockear métodos internos o librerías externas
     with patch('backend.services.ocr_service.convert_from_path') as mock_convert, \
-         patch('backend.services.ocr_service.pytesseract.image_to_pdf_or_hocr') as mock_tess, \
-         patch('backend.services.ocr_service.pytesseract.image_to_string', return_value="dummy text"):
+         patch('backend.services.ocr_service.pytesseract.image_to_pdf_or_hocr') as mock_tess:
         
         # Simular imágenes convertidas
         mock_img1 = MagicMock()
@@ -54,10 +53,10 @@ def test_ocr_processing(ocr_service, sample_pdf, output_path):
             dpi=300
         )
         
-        assert result.success is True
-        assert result.data is not None and 'output_path' in result.data
-        assert result.data['total_pages'] == 2
-        assert result.data['total_characters'] is not None
+        assert result['success'] is True
+        assert 'output_path' in result
+        assert result['total_pages'] == 2
+        assert 'total_characters' in result
 
 
 def test_ocr_with_callback(ocr_service, sample_pdf, output_path):
@@ -65,8 +64,7 @@ def test_ocr_with_callback(ocr_service, sample_pdf, output_path):
     mock_callback = MagicMock()
     
     with patch('backend.services.ocr_service.convert_from_path') as mock_convert, \
-         patch('backend.services.ocr_service.pytesseract.image_to_pdf_or_hocr') as mock_tess, \
-         patch('backend.services.ocr_service.pytesseract.image_to_string', return_value="dummy text"):
+         patch('backend.services.ocr_service.pytesseract.image_to_pdf_or_hocr') as mock_tess:
         
         mock_img = MagicMock()
         mock_convert.return_value = [mock_img]

@@ -6,9 +6,11 @@ Aplica una operación a múltiples archivos
 import os
 
 from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent, QFont
 from PySide6.QtWidgets import (
     QComboBox,
     QFileDialog,
+    QFrame,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -26,6 +28,7 @@ from backend.services.pdf_compressor import PDFCompressor
 from backend.services.pdf_converter import PDFConverter
 from backend.services.pdf_security import PDFSecurity
 from config.settings import settings
+from ui.components.ui_helpers import IconHelper
 
 from .base_operation import BaseOperationWidget
 
@@ -78,7 +81,7 @@ class BatchWorker(QThread):
             result = BatchProcessor.process_batch(
                 self.files, func, kw_config, str(self.output_dir), progress_callback=batch_callback
             )
-            self.finished.emit(result)
+            self.finished.emit(result.to_dict())
 
         except Exception as e:
             self.error.emit(str(e))
@@ -135,11 +138,15 @@ class BatchWidget(BaseOperationWidget):
         tpl.addLayout(fl)
 
         self.file_list = QListWidget()
+        self.file_list.setAcceptDrops(True)  # Habilitar drag & drop
         self.file_list.setStyleSheet(
             "border-radius: 12px; border: 1px solid {{BORDER}}; padding: 8px;"
         )
         self.file_list.setFixedHeight(120)
         tpl.addWidget(self.file_list)
+        
+        # Configurar drag & drop
+        self._setup_drag_drop()
 
         # Operation Selector
         tpl.addSpacing(10)
@@ -231,13 +238,61 @@ class BatchWidget(BaseOperationWidget):
     # BUT PySide Signal must be defined at class level.
     # I will modify the class definition start below.
 
+    def _setup_drag_drop(self):
+        """Configura drag & drop en la lista de archivos"""
+        self.file_list._accepted_extensions = ['.pdf', '.docx']  # Acepta PDFs y Word
+        self.file_list._multiple = True
+        
+        def dragEnterEvent(event: QDragEnterEvent):
+            if event.mimeData().hasUrls():
+                urls = event.mimeData().urls()
+                valid_files = [
+                    url.toLocalFile() for url in urls
+                    if any(url.toLocalFile().lower().endswith(ext) for ext in ['.pdf', '.docx'])
+                ]
+                if valid_files:
+                    event.acceptProposedAction()
+                else:
+                    event.ignore()
+            else:
+                event.ignore()
+        
+        def dragMoveEvent(event: QDragMoveEvent):
+            if event.mimeData().hasUrls():
+                event.acceptProposedAction()
+            else:
+                event.ignore()
+        
+        def dropEvent(event: QDropEvent):
+            if event.mimeData().hasUrls():
+                urls = event.mimeData().urls()
+                files = [
+                    url.toLocalFile() for url in urls
+                    if any(url.toLocalFile().lower().endswith(ext) for ext in ['.pdf', '.docx'])
+                ]
+                if files:
+                    event.acceptProposedAction()
+                    self.on_files_dropped(files)
+                else:
+                    event.ignore()
+            else:
+                event.ignore()
+        
+        self.file_list.dragEnterEvent = dragEnterEvent
+        self.file_list.dragMoveEvent = dragMoveEvent
+        self.file_list.dropEvent = dropEvent
+    
+    def on_files_dropped(self, files: list):
+        """Maneja archivos soltados en la lista"""
+        for f in files:
+            if f not in self.files:
+                self.files.append(f)
+                self.file_list.addItem(os.path.basename(f))
+    
     def add_files(self):
         files, _ = QFileDialog.getOpenFileNames(self, "Seleccionar Archivos")
         if files:
-            for f in files:
-                if f not in self.files:
-                    self.files.append(f)
-                    self.file_list.addItem(os.path.basename(f))
+            self.on_files_dropped(files)
 
     def clear_files(self):
         self.files = []
@@ -254,6 +309,16 @@ class BatchWidget(BaseOperationWidget):
     def start_processing(self):
         if not self.files:
             return self.show_error("Agrega archivos primero")
+        
+        # Validar que todos los archivos existan
+        from pathlib import Path
+        missing_files = []
+        for file_path in self.files:
+            if not Path(file_path).exists():
+                missing_files.append(Path(file_path).name)
+        
+        if missing_files:
+            return self.show_error(f"Los siguientes archivos no existen:\n{', '.join(missing_files)}")
 
         self.run_batch(self.files)
 

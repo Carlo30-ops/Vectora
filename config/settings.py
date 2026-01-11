@@ -112,6 +112,15 @@ class Settings:
         elif value <= 50: return 'medium'
         elif value <= 75: return 'high'
         else: return 'extreme'
+    
+    def get_output_directory(self) -> Path:
+        """
+        Retorna el directorio de salida como Path
+        
+        Returns:
+            Path: Directorio de salida de archivos
+        """
+        return self.OUTPUT_DIR
 
 # Instancia singleton de configuración
 settings = Settings()

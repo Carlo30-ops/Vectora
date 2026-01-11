@@ -4,12 +4,15 @@ Soporta PDF ↔ Word, PDF ↔ Imágenes
 """
 
 import os
+from pathlib import Path
 
 from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent, QFont
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QFileDialog,
+    QFrame,
     QHBoxLayout,
     QLabel,
     QListWidget,
@@ -22,6 +25,7 @@ from PySide6.QtWidgets import (
 
 from backend.services.pdf_converter import PDFConverter
 from config.settings import settings
+from ui.components.ui_helpers import IconHelper
 from utils.file_handler import FileHandler
 
 from .base_operation import BaseOperationWidget
@@ -80,7 +84,7 @@ class ConvertWorker(QThread):
                     progress_callback=lambda v: self.progress_updated.emit(v),
                 )
 
-            self.finished.emit(result)
+            self.finished.emit(result.to_dict())
         except Exception as e:
             self.error.emit(str(e))
 
@@ -131,6 +135,7 @@ class ConvertWidget(BaseOperationWidget):
         self.sf_dropzone = QFrame()
         self.sf_dropzone.setObjectName("glassContainer")
         self.sf_dropzone.setMinimumHeight(150)
+        self.sf_dropzone.setAcceptDrops(True)  # Habilitar drag & drop
         self.sf_dropzone.setStyleSheet(
             "border: 2px dashed {{BORDER}}; background-color: {{HOVER}};"
         )
@@ -171,6 +176,7 @@ class ConvertWidget(BaseOperationWidget):
         # Reusamos dropzone visualmente (solo info)
         self.pi_info_box = QFrame()
         self.pi_info_box.setObjectName("glassContainer")
+        self.pi_info_box.setAcceptDrops(True)  # Habilitar drag & drop
         self.pi_info_box.setStyleSheet(
             "border: 2px dashed {{BORDER}}; background-color: {{HOVER}}; padding: 20px;"
         )
@@ -225,6 +231,7 @@ class ConvertWidget(BaseOperationWidget):
         ip_layout.addWidget(self.imgs_btn)
 
         self.imgs_list = QListWidget()
+        self.imgs_list.setAcceptDrops(True)  # Habilitar drag & drop
         self.imgs_list.setStyleSheet(
             "border-radius: 12px; border: 1px solid {{BORDER}}; padding: 8px;"
         )
@@ -244,6 +251,9 @@ class ConvertWidget(BaseOperationWidget):
         # Inicializar estado
         self.current_file = None
         self.image_files = []
+        
+        # Configurar drag & drop para todos los modos
+        self._setup_drag_drop()
 
     def on_mode_changed(self, index):
         """Cambia la interfaz según el modo"""
@@ -278,15 +288,158 @@ class ConvertWidget(BaseOperationWidget):
             label = self.file_label if mode == 0 or mode == 3 else self.pi_file_label
             label.setText(f"📄 {os.path.basename(file)}")
 
+    def _setup_drag_drop(self):
+        """Configura drag & drop para todos los modos de conversión"""
+        # Dropzone para archivo simple (PDF->Word, Word->PDF)
+        self._setup_single_file_dropzone(self.sf_dropzone, ['.pdf', '.docx'])
+        
+        # Dropzone para PDF->Images
+        self._setup_single_file_dropzone(self.pi_info_box, ['.pdf'])
+        
+        # Lista para Images->PDF (múltiples archivos)
+        self._setup_images_list_dropzone()
+    
+    def _setup_single_file_dropzone(self, dropzone: QFrame, extensions: list):
+        """Configura drag & drop para un dropzone de archivo simple"""
+        dropzone._accepted_extensions = extensions
+        dropzone._multiple = False
+        
+        def dragEnterEvent(event: QDragEnterEvent):
+            if event.mimeData().hasUrls():
+                urls = event.mimeData().urls()
+                valid_files = [
+                    url.toLocalFile() for url in urls
+                    if any(url.toLocalFile().lower().endswith(ext) for ext in extensions)
+                ]
+                if valid_files:
+                    event.acceptProposedAction()
+                    current_style = dropzone.styleSheet()
+                    dropzone.setStyleSheet(
+                        current_style.replace(
+                            "border: 2px dashed {{BORDER}}",
+                            "border: 2px solid {{ACCENT}}"
+                        ) + "\nbackground-color: {{ACCENT}}20;"
+                    )
+                else:
+                    event.ignore()
+            else:
+                event.ignore()
+        
+        def dragMoveEvent(event: QDragMoveEvent):
+            if event.mimeData().hasUrls():
+                urls = event.mimeData().urls()
+                valid_files = [
+                    url.toLocalFile() for url in urls
+                    if any(url.toLocalFile().lower().endswith(ext) for ext in extensions)
+                ]
+                if valid_files:
+                    event.acceptProposedAction()
+                else:
+                    event.ignore()
+            else:
+                event.ignore()
+        
+        def dragLeaveEvent(event):
+            dropzone.setStyleSheet(
+                dropzone.styleSheet().replace(
+                    "border: 2px solid {{ACCENT}}",
+                    "border: 2px dashed {{BORDER}}"
+                ).replace("background-color: {{ACCENT}}20;", "background-color: {{HOVER}};")
+            )
+        
+        def dropEvent(event: QDropEvent):
+            dropzone.setStyleSheet(
+                dropzone.styleSheet().replace(
+                    "border: 2px solid {{ACCENT}}",
+                    "border: 2px dashed {{BORDER}}"
+                ).replace("background-color: {{ACCENT}}20;", "background-color: {{HOVER}};")
+            )
+            if event.mimeData().hasUrls():
+                urls = event.mimeData().urls()
+                files = [
+                    url.toLocalFile() for url in urls
+                    if any(url.toLocalFile().lower().endswith(ext) for ext in extensions)
+                ]
+                if files:
+                    event.acceptProposedAction()
+                    self.on_file_dropped(files[0])
+                else:
+                    event.ignore()
+            else:
+                event.ignore()
+        
+        dropzone.dragEnterEvent = dragEnterEvent
+        dropzone.dragMoveEvent = dragMoveEvent
+        dropzone.dragLeaveEvent = dragLeaveEvent
+        dropzone.dropEvent = dropEvent
+    
+    def _setup_images_list_dropzone(self):
+        """Configura drag & drop para la lista de imágenes"""
+        self.imgs_list._accepted_extensions = ['.png', '.jpg', '.jpeg']
+        self.imgs_list._multiple = True
+        
+        def dragEnterEvent(event: QDragEnterEvent):
+            if event.mimeData().hasUrls():
+                urls = event.mimeData().urls()
+                valid_files = [
+                    url.toLocalFile() for url in urls
+                    if any(url.toLocalFile().lower().endswith(ext) for ext in ['.png', '.jpg', '.jpeg'])
+                ]
+                if valid_files:
+                    event.acceptProposedAction()
+                else:
+                    event.ignore()
+            else:
+                event.ignore()
+        
+        def dragMoveEvent(event: QDragMoveEvent):
+            if event.mimeData().hasUrls():
+                event.acceptProposedAction()
+            else:
+                event.ignore()
+        
+        def dropEvent(event: QDropEvent):
+            if event.mimeData().hasUrls():
+                urls = event.mimeData().urls()
+                files = [
+                    url.toLocalFile() for url in urls
+                    if any(url.toLocalFile().lower().endswith(ext) for ext in ['.png', '.jpg', '.jpeg'])
+                ]
+                if files:
+                    event.acceptProposedAction()
+                    self.on_images_dropped(files)
+                else:
+                    event.ignore()
+            else:
+                event.ignore()
+        
+        self.imgs_list.dragEnterEvent = dragEnterEvent
+        self.imgs_list.dragMoveEvent = dragMoveEvent
+        self.imgs_list.dropEvent = dropEvent
+    
+    def on_file_dropped(self, file_path: str):
+        """Maneja archivo soltado en dropzones simples"""
+        mode = self.mode_combo.currentIndex()
+        self.current_file = file_path
+        
+        if mode == 0 or mode == 3:  # PDF->Word o Word->PDF
+            self.file_label.setText(f"📄 {os.path.basename(file_path)}")
+        elif mode == 1:  # PDF->Images
+            self.pi_file_label.setText(f"📄 {os.path.basename(file_path)}")
+    
+    def on_images_dropped(self, files: list):
+        """Maneja imágenes soltadas en la lista"""
+        for f in files:
+            if f not in self.image_files:
+                self.image_files.append(f)
+                self.imgs_list.addItem(os.path.basename(f))
+    
     def select_images(self):
         files, _ = QFileDialog.getOpenFileNames(
             self, "Seleccionar Imágenes", "", "Imágenes (*.png *.jpg *.jpeg)"
         )
         if files:
-            for f in files:
-                if f not in self.image_files:
-                    self.image_files.append(f)
-                    self.imgs_list.addItem(os.path.basename(f))
+            self.on_images_dropped(files)
 
     def start_processing(self):
         mode_idx = self.mode_combo.currentIndex()
@@ -297,6 +450,8 @@ class ConvertWidget(BaseOperationWidget):
         if mode_idx == 0:  # PDF -> Word
             if not self.current_file:
                 return self.show_error("Selecciona un archivo")
+            if not Path(self.current_file).exists():
+                return self.show_error("El archivo seleccionado no existe")
             worker_mode = "pdf_to_word"
 
             default_name = output_dir / f"{os.path.basename(self.current_file)[:-4]}.docx"
@@ -312,6 +467,8 @@ class ConvertWidget(BaseOperationWidget):
         elif mode_idx == 1:  # PDF -> Images
             if not self.current_file:
                 return self.show_error("Selecciona un archivo")
+            if not Path(self.current_file).exists():
+                return self.show_error("El archivo seleccionado no existe")
             worker_mode = "pdf_to_images"
 
             # Para imágenes, pedimos un directorio
@@ -338,6 +495,10 @@ class ConvertWidget(BaseOperationWidget):
         elif mode_idx == 2:  # Images -> PDF
             if not self.image_files:
                 return self.show_error("Selecciona imágenes")
+            # Validar que todas las imágenes existan
+            missing = [Path(f).name for f in self.image_files if not Path(f).exists()]
+            if missing:
+                return self.show_error(f"Las siguientes imágenes no existen:\n{', '.join(missing)}")
             worker_mode = "images_to_pdf"
 
             default_name = output_dir / "images_combined.pdf"
@@ -353,6 +514,8 @@ class ConvertWidget(BaseOperationWidget):
         elif mode_idx == 3:  # Word -> PDF
             if not self.current_file:
                 return self.show_error("Selecciona un archivo")
+            if not Path(self.current_file).exists():
+                return self.show_error("El archivo seleccionado no existe")
             worker_mode = "word_to_pdf"
 
             default_name = output_dir / f"{os.path.basename(self.current_file)[:-5]}.pdf"

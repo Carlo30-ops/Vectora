@@ -6,10 +6,12 @@ Extrae texto de PDFs escaneados
 import os
 
 from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent, QFont
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QFileDialog,
+    QFrame,
     QHBoxLayout,
     QLabel,
     QPushButton,
@@ -19,6 +21,7 @@ from PySide6.QtWidgets import (
 
 from backend.services.ocr_service import OCRService
 from config.settings import settings
+from ui.components.ui_helpers import IconHelper
 from utils.file_handler import FileHandler
 
 from .base_operation import BaseOperationWidget
@@ -54,7 +57,7 @@ class OCRWorker(QThread):
                 dpi=self.dpi,
                 progress_callback=progress_callback,
             )
-            self.finished.emit(result)
+            self.finished.emit(result.to_dict())
         except Exception as e:
             self.error.emit(str(e))
 
@@ -80,6 +83,7 @@ class OCRWidget(BaseOperationWidget):
         drop_area = QFrame()
         drop_area.setObjectName("glassContainer")
         drop_area.setMinimumHeight(100)
+        drop_area.setAcceptDrops(True)  # Habilitar drag & drop
         drop_area.setStyleSheet(
             """
             QFrame {
@@ -120,6 +124,9 @@ class OCRWidget(BaseOperationWidget):
         dal.addWidget(select_btn, 0, Qt.AlignCenter)
 
         self.config_layout.addWidget(drop_area)
+        
+        # Implementar drag & drop
+        self._setup_drag_drop(drop_area)
 
         # Opciones en panel Glass
         opt_panel = QFrame()
@@ -171,15 +178,103 @@ class OCRWidget(BaseOperationWidget):
 
         self.config_layout.addWidget(note_container)
 
+    def _setup_drag_drop(self, drop_area: QFrame):
+        """Configura drag & drop en el área de drop"""
+        drop_area._accepted_extensions = ['.pdf']
+        drop_area._multiple = False
+        
+        def dragEnterEvent(event: QDragEnterEvent):
+            if event.mimeData().hasUrls():
+                urls = event.mimeData().urls()
+                valid_files = [
+                    url.toLocalFile() for url in urls
+                    if url.toLocalFile().lower().endswith('.pdf')
+                ]
+                if valid_files:
+                    event.acceptProposedAction()
+                    drop_area.setStyleSheet(
+                        drop_area.styleSheet().replace(
+                            "border: 2px dashed {{BORDER}}",
+                            "border: 2px solid {{ACCENT}}"
+                        ) + "\nbackground-color: {{ACCENT}}20;"
+                    )
+                else:
+                    event.ignore()
+            else:
+                event.ignore()
+        
+        def dragMoveEvent(event: QDragMoveEvent):
+            if event.mimeData().hasUrls():
+                urls = event.mimeData().urls()
+                valid_files = [
+                    url.toLocalFile() for url in urls
+                    if url.toLocalFile().lower().endswith('.pdf')
+                ]
+                if valid_files:
+                    event.acceptProposedAction()
+                else:
+                    event.ignore()
+            else:
+                event.ignore()
+        
+        def dragLeaveEvent(event):
+            drop_area.setStyleSheet(
+                """
+                QFrame {
+                    border: 2px dashed {{BORDER}};
+                    background-color: {{HOVER}};
+                }
+                QFrame:hover { border-color: {{ACCENT}}; }
+            """
+            )
+        
+        def dropEvent(event: QDropEvent):
+            drop_area.setStyleSheet(
+                """
+                QFrame {
+                    border: 2px dashed {{BORDER}};
+                    background-color: {{HOVER}};
+                }
+                QFrame:hover { border-color: {{ACCENT}}; }
+            """
+            )
+            if event.mimeData().hasUrls():
+                urls = event.mimeData().urls()
+                files = [
+                    url.toLocalFile() for url in urls
+                    if url.toLocalFile().lower().endswith('.pdf')
+                ]
+                if files:
+                    event.acceptProposedAction()
+                    self.on_file_dropped(files[0])
+                else:
+                    event.ignore()
+            else:
+                event.ignore()
+        
+        drop_area.dragEnterEvent = dragEnterEvent
+        drop_area.dragMoveEvent = dragMoveEvent
+        drop_area.dragLeaveEvent = dragLeaveEvent
+        drop_area.dropEvent = dropEvent
+    
+    def on_file_dropped(self, file_path: str):
+        """Maneja archivo soltado"""
+        self.current_file = file_path
+        self.file_label.setText(os.path.basename(file_path))
+    
     def select_file(self):
         file, _ = QFileDialog.getOpenFileName(self, "Seleccionar PDF", "", "PDF (*.pdf)")
         if file:
-            self.current_file = file
-            self.file_label.setText(os.path.basename(file))
+            self.on_file_dropped(file)
 
     def start_processing(self):
         if not self.current_file:
             return self.show_error("Selecciona un archivo PDF")
+        
+        # Validar que el archivo existe
+        from pathlib import Path
+        if not Path(self.current_file).exists():
+            return self.show_error("El archivo seleccionado no existe")
 
         lang_code = self.langs[self.lang_combo.currentText()]
         dpi = self.dpi_spin.value()

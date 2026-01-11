@@ -15,6 +15,13 @@ class FileHandler:
     """Utilidades para manejo de archivos"""
 
     @staticmethod
+    def get_filename(file_path: str) -> str:
+        """
+        Obtiene el nombre del archivo desde la ruta
+        """
+        return Path(file_path).name
+
+    @staticmethod
     def validate_pdf_file(file_path: str) -> bool:
         """
         Verifica que un archivo sea un PDF válido

@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QThread, QUrl, Signal
-from PySide6.QtGui import QDesktopServices, QDragEnterEvent, QDropEvent
+from PySide6.QtGui import QDesktopServices, QDragEnterEvent, QDropEvent, QFont
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QFileDialog,
@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
 
 from backend.services.pdf_merger import PDFMerger
 from config.settings import settings
+from ui.components.ui_helpers import IconHelper
 from utils.file_handler import FileHandler
 from utils.logger import get_logger
 
@@ -83,7 +84,7 @@ class DragDropListWidget(QListWidget):
 class MergeWorker(QThread):
     """Worker thread para combinar PDFs"""
 
-    progress_updated = Signal(int)
+    progress_updated = Signal(int, str)
     finished = Signal(dict)
     error = Signal(str)
 
@@ -94,10 +95,13 @@ class MergeWorker(QThread):
 
     def run(self):
         try:
-            result = PDFMerger.merge_pdfs(
+            # Instantiate service
+            merger = PDFMerger()
+            
+            result = merger.merge_pdfs(
                 self.input_files, self.output_file, progress_callback=self.progress_updated.emit
             )
-            self.finished.emit(result)
+            self.finished.emit(result.to_dict())
         except Exception as e:
             self.error.emit(str(e))
 
@@ -214,6 +218,18 @@ class MergeWidget(BaseOperationWidget):
             logger.warning("Validación fallida: menos de 2 archivos seleccionados")
             self.show_error("Necesitas al menos 2 archivos PDF para combinar")
             return
+        
+        # Validar que todos los archivos existan
+        from pathlib import Path
+        missing_files = []
+        for file_path in self.files:
+            if not Path(file_path).exists():
+                missing_files.append(Path(file_path).name)
+        
+        if missing_files:
+            logger.error(f"Archivos no encontrados: {missing_files}")
+            self.show_error(f"Los siguientes archivos no existen:\n{', '.join(missing_files)}")
+            return
 
         # Preguntar dónde guardar el archivo
         output_dir = settings.get_output_directory()
@@ -239,10 +255,13 @@ class MergeWidget(BaseOperationWidget):
 
         logger.info("Iniciando worker thread para combinación")
         self.worker = MergeWorker(self.files, self.output_file)
-        self.worker.progress_updated.connect(self.update_progress)
+        self.worker.progress_updated.connect(self.update_progress_message)
         self.worker.finished.connect(self.on_success)
         self.worker.error.connect(self.on_error)
         self.worker.start()
+
+    def update_progress_message(self, val, msg):
+        self.update_progress(val, msg)
 
     def on_success(self, result):
         """Maneja el resultado exitoso"""

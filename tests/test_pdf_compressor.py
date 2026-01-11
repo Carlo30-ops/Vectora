@@ -20,9 +20,8 @@ class TestPDFCompressor:
     def test_compress_pdf_success(self, compressor, sample_pdf, output_path):
         """Prueba compresión exitosa (Mockeado)"""
         
-        # Mockear pikepdf.open, remove_unreferenced_resources/save y os.path.getsize
-        with patch('pikepdf.open') as mock_open, \
-             patch('os.path.getsize', return_value=1024*1024): # 1MB dummy size
+        # Mockear pikepdf.open y remove_unreferenced_resources/save
+        with patch('pikepdf.open') as mock_open:
             mock_pdf = MagicMock()
             mock_pdf.pages = [MagicMock()] * 3  # 3 páginas
             mock_open.return_value.__enter__.return_value = mock_pdf
@@ -33,8 +32,8 @@ class TestPDFCompressor:
                 quality_level='medium'
             )
             
-            assert result.success is True
-            assert result.data is not None and 'output_path' in result.data
+            assert result['success'] is True
+            assert 'output_path' in result
             mock_pdf.save.assert_called_once()
     
     @pytest.mark.unit
@@ -52,8 +51,7 @@ class TestPDFCompressor:
         """Prueba que se llame al callback de progreso"""
         mock_callback = MagicMock()
 
-        with patch('pikepdf.open') as mock_open, \
-             patch('os.path.getsize', return_value=1024):
+        with patch('pikepdf.open') as mock_open:
             mock_pdf = MagicMock()
             mock_pdf.pages = [MagicMock()] * 2  # 2 páginas
             mock_open.return_value.__enter__.return_value = mock_pdf

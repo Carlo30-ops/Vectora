@@ -388,6 +388,20 @@ def list_available_icons() -> list:
     return sorted(ICONS.keys())
 
 
+class IconHelper:
+    """
+    Helper class for backward compatibility with widgets expecting IconHelper.get_icon(...)
+    """
+    
+    @staticmethod
+    def get_icon(name: str, color: str = None) -> QIcon:
+        """
+        Wrapper to get_icon_qicon for backward compatibility
+        """
+        return get_icon_qicon(name, color)
+
+
+
 if __name__ == '__main__':
     print("Iconos disponibles:")
     for icon in list_available_icons():

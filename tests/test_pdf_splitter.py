@@ -81,7 +81,7 @@ class TestPDFSplitterByRange:
         )
         
         # Assert
-        assert result.success is True
+        assert result['success'] is True
         assert_pdf_exists(output_path)
         assert_pdf_pages(output_path, 5)  # 5 páginas (3, 4, 5, 6, 7)
     
@@ -97,8 +97,7 @@ class TestPDFSplitterByRange:
         )
         
         # Assert
-        # Assert
-        assert result.success is True
+        assert result['success'] is True
         assert_pdf_exists(output_path)
         assert_pdf_pages(output_path, 3)
     
@@ -146,8 +145,7 @@ class TestPDFSplitterByPages:
         )
         
         # Assert
-        # Assert
-        assert result.success is True
+        assert result['success'] is True
         assert_pdf_exists(output_path)
         # Páginas: 1, 3, 5, 6, 7, 10 = 6 páginas
         assert_pdf_pages(output_path, 6)
@@ -182,10 +180,10 @@ class TestPDFSplitterEveryN:
         )
         
         # Assert
-        assert result.success is True
+        assert result['success'] is True
         # Debe crear 4 archivos: 3+3+3+1 = 10 páginas
-        assert result.data['total_parts'] == 4
-        assert len(result.data['output_files']) == 4
+        assert result['data']['total_parts'] == 4
+        assert len(result['data']['output_files']) == 4
     
     @pytest.mark.unit
     def test_split_every_1_page(self, splitter, sample_pdfs_multiple, temp_dir):
@@ -197,9 +195,9 @@ class TestPDFSplitterEveryN:
         result = splitter.split_every_n_pages(pdf_path, str(temp_dir), n_pages=1)
         
         # Assert
-        assert result.success is True
-        assert result.data['total_parts'] == 3
-        assert len(result.data['output_files']) == 3
+        assert result['success'] is True
+        assert result['data']['total_parts'] == 3
+        assert len(result['data']['output_files']) == 3
     
     @pytest.mark.unit
     def test_split_every_n_invalid_number_raises_error(self, splitter, sample_pdf_multipage, temp_dir):
