@@ -124,7 +124,7 @@ class OCRWidget(BaseOperationWidget):
         dal.addWidget(select_btn, 0, Qt.AlignCenter)
 
         self.config_layout.addWidget(drop_area)
-        
+
         # Implementar drag & drop
         self._setup_drag_drop(drop_area)
 
@@ -180,35 +180,33 @@ class OCRWidget(BaseOperationWidget):
 
     def _setup_drag_drop(self, drop_area: QFrame):
         """Configura drag & drop en el área de drop"""
-        drop_area._accepted_extensions = ['.pdf']
+        drop_area._accepted_extensions = [".pdf"]
         drop_area._multiple = False
-        
+
         def dragEnterEvent(event: QDragEnterEvent):
             if event.mimeData().hasUrls():
                 urls = event.mimeData().urls()
                 valid_files = [
-                    url.toLocalFile() for url in urls
-                    if url.toLocalFile().lower().endswith('.pdf')
+                    url.toLocalFile() for url in urls if url.toLocalFile().lower().endswith(".pdf")
                 ]
                 if valid_files:
                     event.acceptProposedAction()
                     drop_area.setStyleSheet(
                         drop_area.styleSheet().replace(
-                            "border: 2px dashed {{BORDER}}",
-                            "border: 2px solid {{ACCENT}}"
-                        ) + "\nbackground-color: {{ACCENT}}20;"
+                            "border: 2px dashed {{BORDER}}", "border: 2px solid {{ACCENT}}"
+                        )
+                        + "\nbackground-color: {{ACCENT}}20;"
                     )
                 else:
                     event.ignore()
             else:
                 event.ignore()
-        
+
         def dragMoveEvent(event: QDragMoveEvent):
             if event.mimeData().hasUrls():
                 urls = event.mimeData().urls()
                 valid_files = [
-                    url.toLocalFile() for url in urls
-                    if url.toLocalFile().lower().endswith('.pdf')
+                    url.toLocalFile() for url in urls if url.toLocalFile().lower().endswith(".pdf")
                 ]
                 if valid_files:
                     event.acceptProposedAction()
@@ -216,7 +214,7 @@ class OCRWidget(BaseOperationWidget):
                     event.ignore()
             else:
                 event.ignore()
-        
+
         def dragLeaveEvent(event):
             drop_area.setStyleSheet(
                 """
@@ -227,7 +225,7 @@ class OCRWidget(BaseOperationWidget):
                 QFrame:hover { border-color: {{ACCENT}}; }
             """
             )
-        
+
         def dropEvent(event: QDropEvent):
             drop_area.setStyleSheet(
                 """
@@ -241,8 +239,7 @@ class OCRWidget(BaseOperationWidget):
             if event.mimeData().hasUrls():
                 urls = event.mimeData().urls()
                 files = [
-                    url.toLocalFile() for url in urls
-                    if url.toLocalFile().lower().endswith('.pdf')
+                    url.toLocalFile() for url in urls if url.toLocalFile().lower().endswith(".pdf")
                 ]
                 if files:
                     event.acceptProposedAction()
@@ -251,17 +248,17 @@ class OCRWidget(BaseOperationWidget):
                     event.ignore()
             else:
                 event.ignore()
-        
+
         drop_area.dragEnterEvent = dragEnterEvent
         drop_area.dragMoveEvent = dragMoveEvent
         drop_area.dragLeaveEvent = dragLeaveEvent
         drop_area.dropEvent = dropEvent
-    
+
     def on_file_dropped(self, file_path: str):
         """Maneja archivo soltado"""
         self.current_file = file_path
         self.file_label.setText(os.path.basename(file_path))
-    
+
     def select_file(self):
         file, _ = QFileDialog.getOpenFileName(self, "Seleccionar PDF", "", "PDF (*.pdf)")
         if file:
@@ -270,9 +267,10 @@ class OCRWidget(BaseOperationWidget):
     def start_processing(self):
         if not self.current_file:
             return self.show_error("Selecciona un archivo PDF")
-        
+
         # Validar que el archivo existe
         from pathlib import Path
+
         if not Path(self.current_file).exists():
             return self.show_error("El archivo seleccionado no existe")
 

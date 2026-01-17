@@ -144,7 +144,7 @@ class BatchWidget(BaseOperationWidget):
         )
         self.file_list.setFixedHeight(120)
         tpl.addWidget(self.file_list)
-        
+
         # Configurar drag & drop
         self._setup_drag_drop()
 
@@ -240,15 +240,16 @@ class BatchWidget(BaseOperationWidget):
 
     def _setup_drag_drop(self):
         """Configura drag & drop en la lista de archivos"""
-        self.file_list._accepted_extensions = ['.pdf', '.docx']  # Acepta PDFs y Word
+        self.file_list._accepted_extensions = [".pdf", ".docx"]  # Acepta PDFs y Word
         self.file_list._multiple = True
-        
+
         def dragEnterEvent(event: QDragEnterEvent):
             if event.mimeData().hasUrls():
                 urls = event.mimeData().urls()
                 valid_files = [
-                    url.toLocalFile() for url in urls
-                    if any(url.toLocalFile().lower().endswith(ext) for ext in ['.pdf', '.docx'])
+                    url.toLocalFile()
+                    for url in urls
+                    if any(url.toLocalFile().lower().endswith(ext) for ext in [".pdf", ".docx"])
                 ]
                 if valid_files:
                     event.acceptProposedAction()
@@ -256,19 +257,20 @@ class BatchWidget(BaseOperationWidget):
                     event.ignore()
             else:
                 event.ignore()
-        
+
         def dragMoveEvent(event: QDragMoveEvent):
             if event.mimeData().hasUrls():
                 event.acceptProposedAction()
             else:
                 event.ignore()
-        
+
         def dropEvent(event: QDropEvent):
             if event.mimeData().hasUrls():
                 urls = event.mimeData().urls()
                 files = [
-                    url.toLocalFile() for url in urls
-                    if any(url.toLocalFile().lower().endswith(ext) for ext in ['.pdf', '.docx'])
+                    url.toLocalFile()
+                    for url in urls
+                    if any(url.toLocalFile().lower().endswith(ext) for ext in [".pdf", ".docx"])
                 ]
                 if files:
                     event.acceptProposedAction()
@@ -277,18 +279,18 @@ class BatchWidget(BaseOperationWidget):
                     event.ignore()
             else:
                 event.ignore()
-        
+
         self.file_list.dragEnterEvent = dragEnterEvent
         self.file_list.dragMoveEvent = dragMoveEvent
         self.file_list.dropEvent = dropEvent
-    
+
     def on_files_dropped(self, files: list):
         """Maneja archivos soltados en la lista"""
         for f in files:
             if f not in self.files:
                 self.files.append(f)
                 self.file_list.addItem(os.path.basename(f))
-    
+
     def add_files(self):
         files, _ = QFileDialog.getOpenFileNames(self, "Seleccionar Archivos")
         if files:
@@ -309,16 +311,19 @@ class BatchWidget(BaseOperationWidget):
     def start_processing(self):
         if not self.files:
             return self.show_error("Agrega archivos primero")
-        
+
         # Validar que todos los archivos existan
         from pathlib import Path
+
         missing_files = []
         for file_path in self.files:
             if not Path(file_path).exists():
                 missing_files.append(Path(file_path).name)
-        
+
         if missing_files:
-            return self.show_error(f"Los siguientes archivos no existen:\n{', '.join(missing_files)}")
+            return self.show_error(
+                f"Los siguientes archivos no existen:\n{', '.join(missing_files)}"
+            )
 
         self.run_batch(self.files)
 

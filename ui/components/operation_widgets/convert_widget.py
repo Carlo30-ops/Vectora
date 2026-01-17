@@ -251,7 +251,7 @@ class ConvertWidget(BaseOperationWidget):
         # Inicializar estado
         self.current_file = None
         self.image_files = []
-        
+
         # Configurar drag & drop para todos los modos
         self._setup_drag_drop()
 
@@ -291,24 +291,25 @@ class ConvertWidget(BaseOperationWidget):
     def _setup_drag_drop(self):
         """Configura drag & drop para todos los modos de conversión"""
         # Dropzone para archivo simple (PDF->Word, Word->PDF)
-        self._setup_single_file_dropzone(self.sf_dropzone, ['.pdf', '.docx'])
-        
+        self._setup_single_file_dropzone(self.sf_dropzone, [".pdf", ".docx"])
+
         # Dropzone para PDF->Images
-        self._setup_single_file_dropzone(self.pi_info_box, ['.pdf'])
-        
+        self._setup_single_file_dropzone(self.pi_info_box, [".pdf"])
+
         # Lista para Images->PDF (múltiples archivos)
         self._setup_images_list_dropzone()
-    
+
     def _setup_single_file_dropzone(self, dropzone: QFrame, extensions: list):
         """Configura drag & drop para un dropzone de archivo simple"""
         dropzone._accepted_extensions = extensions
         dropzone._multiple = False
-        
+
         def dragEnterEvent(event: QDragEnterEvent):
             if event.mimeData().hasUrls():
                 urls = event.mimeData().urls()
                 valid_files = [
-                    url.toLocalFile() for url in urls
+                    url.toLocalFile()
+                    for url in urls
                     if any(url.toLocalFile().lower().endswith(ext) for ext in extensions)
                 ]
                 if valid_files:
@@ -316,20 +317,21 @@ class ConvertWidget(BaseOperationWidget):
                     current_style = dropzone.styleSheet()
                     dropzone.setStyleSheet(
                         current_style.replace(
-                            "border: 2px dashed {{BORDER}}",
-                            "border: 2px solid {{ACCENT}}"
-                        ) + "\nbackground-color: {{ACCENT}}20;"
+                            "border: 2px dashed {{BORDER}}", "border: 2px solid {{ACCENT}}"
+                        )
+                        + "\nbackground-color: {{ACCENT}}20;"
                     )
                 else:
                     event.ignore()
             else:
                 event.ignore()
-        
+
         def dragMoveEvent(event: QDragMoveEvent):
             if event.mimeData().hasUrls():
                 urls = event.mimeData().urls()
                 valid_files = [
-                    url.toLocalFile() for url in urls
+                    url.toLocalFile()
+                    for url in urls
                     if any(url.toLocalFile().lower().endswith(ext) for ext in extensions)
                 ]
                 if valid_files:
@@ -338,26 +340,25 @@ class ConvertWidget(BaseOperationWidget):
                     event.ignore()
             else:
                 event.ignore()
-        
+
         def dragLeaveEvent(event):
             dropzone.setStyleSheet(
-                dropzone.styleSheet().replace(
-                    "border: 2px solid {{ACCENT}}",
-                    "border: 2px dashed {{BORDER}}"
-                ).replace("background-color: {{ACCENT}}20;", "background-color: {{HOVER}};")
+                dropzone.styleSheet()
+                .replace("border: 2px solid {{ACCENT}}", "border: 2px dashed {{BORDER}}")
+                .replace("background-color: {{ACCENT}}20;", "background-color: {{HOVER}};")
             )
-        
+
         def dropEvent(event: QDropEvent):
             dropzone.setStyleSheet(
-                dropzone.styleSheet().replace(
-                    "border: 2px solid {{ACCENT}}",
-                    "border: 2px dashed {{BORDER}}"
-                ).replace("background-color: {{ACCENT}}20;", "background-color: {{HOVER}};")
+                dropzone.styleSheet()
+                .replace("border: 2px solid {{ACCENT}}", "border: 2px dashed {{BORDER}}")
+                .replace("background-color: {{ACCENT}}20;", "background-color: {{HOVER}};")
             )
             if event.mimeData().hasUrls():
                 urls = event.mimeData().urls()
                 files = [
-                    url.toLocalFile() for url in urls
+                    url.toLocalFile()
+                    for url in urls
                     if any(url.toLocalFile().lower().endswith(ext) for ext in extensions)
                 ]
                 if files:
@@ -367,23 +368,26 @@ class ConvertWidget(BaseOperationWidget):
                     event.ignore()
             else:
                 event.ignore()
-        
+
         dropzone.dragEnterEvent = dragEnterEvent
         dropzone.dragMoveEvent = dragMoveEvent
         dropzone.dragLeaveEvent = dragLeaveEvent
         dropzone.dropEvent = dropEvent
-    
+
     def _setup_images_list_dropzone(self):
         """Configura drag & drop para la lista de imágenes"""
-        self.imgs_list._accepted_extensions = ['.png', '.jpg', '.jpeg']
+        self.imgs_list._accepted_extensions = [".png", ".jpg", ".jpeg"]
         self.imgs_list._multiple = True
-        
+
         def dragEnterEvent(event: QDragEnterEvent):
             if event.mimeData().hasUrls():
                 urls = event.mimeData().urls()
                 valid_files = [
-                    url.toLocalFile() for url in urls
-                    if any(url.toLocalFile().lower().endswith(ext) for ext in ['.png', '.jpg', '.jpeg'])
+                    url.toLocalFile()
+                    for url in urls
+                    if any(
+                        url.toLocalFile().lower().endswith(ext) for ext in [".png", ".jpg", ".jpeg"]
+                    )
                 ]
                 if valid_files:
                     event.acceptProposedAction()
@@ -391,19 +395,22 @@ class ConvertWidget(BaseOperationWidget):
                     event.ignore()
             else:
                 event.ignore()
-        
+
         def dragMoveEvent(event: QDragMoveEvent):
             if event.mimeData().hasUrls():
                 event.acceptProposedAction()
             else:
                 event.ignore()
-        
+
         def dropEvent(event: QDropEvent):
             if event.mimeData().hasUrls():
                 urls = event.mimeData().urls()
                 files = [
-                    url.toLocalFile() for url in urls
-                    if any(url.toLocalFile().lower().endswith(ext) for ext in ['.png', '.jpg', '.jpeg'])
+                    url.toLocalFile()
+                    for url in urls
+                    if any(
+                        url.toLocalFile().lower().endswith(ext) for ext in [".png", ".jpg", ".jpeg"]
+                    )
                 ]
                 if files:
                     event.acceptProposedAction()
@@ -412,28 +419,28 @@ class ConvertWidget(BaseOperationWidget):
                     event.ignore()
             else:
                 event.ignore()
-        
+
         self.imgs_list.dragEnterEvent = dragEnterEvent
         self.imgs_list.dragMoveEvent = dragMoveEvent
         self.imgs_list.dropEvent = dropEvent
-    
+
     def on_file_dropped(self, file_path: str):
         """Maneja archivo soltado en dropzones simples"""
         mode = self.mode_combo.currentIndex()
         self.current_file = file_path
-        
+
         if mode == 0 or mode == 3:  # PDF->Word o Word->PDF
             self.file_label.setText(f"📄 {os.path.basename(file_path)}")
         elif mode == 1:  # PDF->Images
             self.pi_file_label.setText(f"📄 {os.path.basename(file_path)}")
-    
+
     def on_images_dropped(self, files: list):
         """Maneja imágenes soltadas en la lista"""
         for f in files:
             if f not in self.image_files:
                 self.image_files.append(f)
                 self.imgs_list.addItem(os.path.basename(f))
-    
+
     def select_images(self):
         files, _ = QFileDialog.getOpenFileNames(
             self, "Seleccionar Imágenes", "", "Imágenes (*.png *.jpg *.jpeg)"

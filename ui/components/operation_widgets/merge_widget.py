@@ -97,7 +97,7 @@ class MergeWorker(QThread):
         try:
             # Instantiate service
             merger = PDFMerger()
-            
+
             result = merger.merge_pdfs(
                 self.input_files, self.output_file, progress_callback=self.progress_updated.emit
             )
@@ -218,14 +218,15 @@ class MergeWidget(BaseOperationWidget):
             logger.warning("Validación fallida: menos de 2 archivos seleccionados")
             self.show_error("Necesitas al menos 2 archivos PDF para combinar")
             return
-        
+
         # Validar que todos los archivos existan
         from pathlib import Path
+
         missing_files = []
         for file_path in self.files:
             if not Path(file_path).exists():
                 missing_files.append(Path(file_path).name)
-        
+
         if missing_files:
             logger.error(f"Archivos no encontrados: {missing_files}")
             self.show_error(f"Los siguientes archivos no existen:\n{', '.join(missing_files)}")
