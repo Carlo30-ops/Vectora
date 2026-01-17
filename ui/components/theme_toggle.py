@@ -26,10 +26,10 @@ class AnimatedThemeToggle(QPushButton):
         self.is_dark = theme_manager.is_dark
         self._knob_x = 28 if self.is_dark else 4  # Posición del knob
         
-        # Animación
+        # Animación (Spring-like effect con InOutQuad)
         self.animation = QPropertyAnimation(self, b"knobPosition")
         self.animation.setDuration(300)
-        self.animation.setEasingCurve(QEasingCurve.OutCubic)
+        self.animation.setEasingCurve(QEasingCurve.InOutQuad)  # Más smooth que OutCubic
         
         # Conectar cambios de tema
         self.clicked.connect(self._on_clicked)
@@ -118,42 +118,63 @@ class AnimatedThemeToggle(QPushButton):
         self._draw_background_icons(painter, track_color, icon_color)
     
     def _draw_sun_icon(self, painter, rect, color):
-        """Dibuja icono del sol (light mode)"""
-        painter.setPen(QPen(color, 1.5))
-        painter.setBrush(Qt.NoBrush)
-        
-        cx = rect.center().x()
-        cy = rect.center().y()
-        
-        # Círculo central
-        painter.drawEllipse(cx - 2, cy - 2, 4, 4)
-        
-        # Rayos (sin dibujar, solo círculo)
-        painter.drawEllipse(cx - 5, cy - 5, 10, 10)
-    
-    def _draw_moon_icon(self, painter, rect, color):
-        """Dibuja icono de la luna (dark mode)"""
-        painter.setPen(QPen(color, 1.5))
+        """Dibuja icono del sol mejorado (light mode)"""
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setPen(QPen(color, 1.2))
         painter.setBrush(color)
         
         cx = rect.center().x()
         cy = rect.center().y()
         
-        # Luna creciente
+        # Círculo central lleno
+        painter.drawEllipse(cx - 2, cy - 2, 4, 4)
+        
+        # Rayos del sol - 4 direcciones principales
+        pen = QPen(color, 1)
+        painter.setPen(pen)
+        painter.setBrush(Qt.NoBrush)
+        
+        # Rayos horizontales y verticales
+        painter.drawLine(cx - 4, cy, cx - 6, cy)
+        painter.drawLine(cx + 4, cy, cx + 6, cy)
+        painter.drawLine(cx, cy - 4, cx, cy - 6)
+        painter.drawLine(cx, cy + 4, cx, cy + 6)
+    
+    def _draw_moon_icon(self, painter, rect, color):
+        """Dibuja icono de la luna mejorado (dark mode)"""
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setPen(QPen(color, 1.2))
+        painter.setBrush(color)
+        
+        cx = rect.center().x()
+        cy = rect.center().y()
+        
+        # Luna creciente (crescent)
+        # Dibujamos un círculo y lo cubrimos parcialmente con otro
         painter.drawEllipse(cx - 4, cy - 4, 8, 8)
-        painter.setBrush(QColor("#111827") if not self.is_dark else QColor("#374151"))
+        
+        # Cubrimos parte para hacer forma de creciente
+        knob_bg = QColor("#111827") if self.is_dark else QColor("#FFFFFF")
+        painter.setBrush(knob_bg)
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawEllipse(cx - 2, cy - 4, 8, 8)
+        painter.drawEllipse(cx, cy - 4, 8, 8)
     
     def _draw_background_icons(self, painter, track_color, icon_color):
-        """Dibuja iconos sutiles de fondo"""
-        # Sun icon - lado izquierdo
-        painter.setPen(QPen(icon_color, 1))
-        painter.setBrush(Qt.NoBrush)
-        painter.drawEllipse(8, 8, 8, 8)
+        """Dibuja iconos sutiles de fondo en los lados"""
+        painter.setRenderHint(QPainter.Antialiasing)
         
-        # Moon icon - lado derecho  
-        painter.drawEllipse(48, 8, 8, 8)
+        # Sun icon - lado izquierdo (muy sutilizado)
+        sun_color = QColor(icon_color)
+        sun_color.setAlpha(120)
+        painter.setPen(QPen(sun_color, 0.8))
+        painter.setBrush(sun_color)
+        painter.drawEllipse(8, 10, 6, 6)
+        
+        # Moon icon - lado derecho (muy sutilizado)
+        moon_color = QColor(icon_color)
+        moon_color.setAlpha(120)
+        painter.setPen(QPen(moon_color, 0.8))
+        painter.drawEllipse(50, 10, 6, 6)
 
 
 class ThemeToggleWidget(QWidget):

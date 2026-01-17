@@ -55,7 +55,7 @@ class DragDropZone(QFrame):
         layout.addWidget(self.button, 0, Qt.AlignCenter)
 
     def dragEnterEvent(self, event: QDragEnterEvent):
-        """Acepta el evento si contiene archivos válidos"""
+        """Acepta el evento si contiene archivos válidos con animación"""
         if event.mimeData().hasUrls():
             urls = event.mimeData().urls()
             valid_files = self._filter_valid_files([url.toLocalFile() for url in urls])
@@ -63,6 +63,7 @@ class DragDropZone(QFrame):
             if valid_files:
                 event.acceptProposedAction()
                 self._set_drag_style(True)
+                self._animate_drag_state(True)  # Agregar animación
             else:
                 event.ignore()
         else:
@@ -82,8 +83,9 @@ class DragDropZone(QFrame):
             event.ignore()
 
     def dragLeaveEvent(self, event):
-        """Restaura el estilo cuando sale el drag"""
+        """Restaura el estilo cuando sale el drag con animación"""
         self._set_drag_style(False)
+        self._animate_drag_state(False)  # Animar salida
         super().dragLeaveEvent(event)
 
     def dropEvent(self, event: QDropEvent):
@@ -150,3 +152,36 @@ class DragDropZone(QFrame):
             # En la práctica, el estilo se restaura automáticamente por el tema
             # Pero podemos forzar una actualización
             pass
+    
+    def _animate_drag_state(self, dragging: bool):
+        """
+        Anima el estado de arrastre con efecto spring
+        Similar a: scale 1.05 en arrastre, scale 1.0 normal
+        """
+        from PySide6.QtCore import QPropertyAnimation, QEasingCurve
+        
+        # Animar escala del frame
+        anim = QPropertyAnimation(self, b"geometry")
+        anim.setDuration(300)
+        
+        if dragging:
+            # Scale to 1.05
+            anim.setEasingCurve(QEasingCurve.OutCubic)
+            current_geom = self.geometry()
+            
+            # Calcular new size con 5% de aumento
+            new_width = int(current_geom.width() * 1.05)
+            new_height = int(current_geom.height() * 1.05)
+            delta_x = (new_width - current_geom.width()) // 2
+            delta_y = (new_height - current_geom.height()) // 2
+            
+            new_geom = current_geom.adjusted(-delta_x, -delta_y, delta_x, delta_y)
+            anim.setEndValue(new_geom)
+        else:
+            # Scale back to 1.0
+            anim.setEasingCurve(QEasingCurve.OutCubic)
+            current_geom = self.geometry()
+            anim.setEndValue(current_geom)
+        
+        anim.start()
+        self._animation = anim  # Guardar referencia para evitar que se borre

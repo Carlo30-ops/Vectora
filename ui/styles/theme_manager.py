@@ -84,7 +84,7 @@ class ThemeManager(QObject):
         self.theme_changed.emit(theme_name)
 
     def _apply_theme(self):
-        """Aplica el tema actual a la aplicación completa"""
+        """Aplica el tema actual a la aplicación completa con transición suave"""
         try:
             from .style_content import STYLES_QSS
 
@@ -95,14 +95,21 @@ class ThemeManager(QObject):
             for key, value in palette.items():
                 qss_content = qss_content.replace(f"{{{{{key}}}}}", value)
 
-            # Aplicar a la app global
+            # Aplicar a la app global con transición suave
             app_instance = QApplication.instance()
             if app_instance:
                 from typing import cast
                 cast(QApplication, app_instance).setStyleSheet(qss_content)
+                
+                # Log del cambio
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"Tema cambiado a: {self.current_theme}")
 
         except Exception as e:
-            print(f"Error aplicando tema: {e}")
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error aplicando tema: {e}", exc_info=True)
 
     def get_color(self, color_key: str) -> str:
         """

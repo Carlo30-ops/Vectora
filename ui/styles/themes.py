@@ -61,14 +61,14 @@ THEMES = {
         "ICON_CONTAINER_BG": "#ffffff",  # Icon containers - blanco (INVERTIDO)
         "ICON_CONTAINER_FG": "#000000",  # Icon - negro (INVERTIDO)
         
-        # Estados de Color - Más vibrantes en dark mode
-        "SUCCESS": "#34d399",  # emerald-400 - Más brillante
+        # Estados de Color - Más vibrantes en dark mode (Apple Style)
+        "SUCCESS": "#32d74b",  # green-500 Apple - Muy brillante
         "SUCCESS_LIGHT": "#064e3b",  # emerald-900
-        "ERROR": "#f87171",  # red-400 - Más brillante
+        "ERROR": "#ff453a",  # red-500 Apple - Muy brillante
         "ERROR_LIGHT": "#7f1d1d",  # red-900
-        "WARNING": "#fbbf24",  # amber-400 - Más brillante
+        "WARNING": "#ff9500",  # orange-500 Apple - Muy brillante
         "WARNING_LIGHT": "#78350f",  # amber-900
-        "INFO": "#818cf8",  # indigo-400 - Más brillante
+        "INFO": "#0a84ff",  # blue-500 Apple - Muy brillante
         "INFO_LIGHT": "#312e81",  # indigo-900
         
         # Efectos Especiales - Adaptados para dark mode
