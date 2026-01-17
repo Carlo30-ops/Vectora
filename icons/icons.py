@@ -12,12 +12,18 @@ Uso:
     icon = get_icon_qicon('scissors')
 """
 
+import os
+from pathlib import Path
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtSvg import QSvgRenderer
-from PySide6.QtCore import QByteArray
+from PySide6.QtCore import QByteArray, Qt
 
 
-# Diccionario de iconos SVG
+# Obtener directorio de iconos SVG
+ICONS_DIR = Path(__file__).parent
+
+
+# Diccionario de iconos SVG (fallback si no hay archivos)
 ICONS = {
     'file-text': '''<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
@@ -342,6 +348,16 @@ def get_icon_svg(name: str) -> str:
     Returns:
         String con el contenido SVG
     """
+    # Primero intentar cargar desde archivo SVG
+    svg_file = ICONS_DIR / f"{name}.svg"
+    if svg_file.exists():
+        try:
+            with open(svg_file, 'r', encoding='utf-8') as f:
+                return f.read()
+        except Exception as e:
+            print(f"Error leyendo {svg_file}: {e}")
+    
+    # Fallback a diccionario de iconos inline
     return ICONS.get(name, ICONS['file-text'])
 
 
@@ -360,15 +376,24 @@ def get_icon_qicon(name: str, color: str = None) -> QIcon:
     
     # Cambiar color si se especifica
     if color:
+        # Reemplazar ambos stroke y fill para mayor compatibilidad
         svg_content = svg_content.replace('stroke="currentColor"', f'stroke="{color}"')
+        svg_content = svg_content.replace('fill="currentColor"', f'fill="{color}"')
+        # También reemplazar sin comillas (algunas variaciones)
+        svg_content = svg_content.replace("stroke='currentColor'", f"stroke='{color}'")
+        svg_content = svg_content.replace("fill='currentColor'", f"fill='{color}'")
     
-    # Crear QIcon desde SVG
+    # Crear QIcon desde SVG con mejor renderizado
     byte_array = QByteArray(svg_content.encode('utf-8'))
     renderer = QSvgRenderer(byte_array)
     
-    # Renderizar a pixmap
-    pixmap = QPixmap(24, 24)
-    pixmap.fill(0x00000000)  # Transparente
+    if not renderer.isValid():
+        # Si el renderer no es válido, devolver un ícono vacío
+        return QIcon()
+    
+    # Renderizar a pixmap con mejor calidad (48x48 for scaling)
+    pixmap = QPixmap(48, 48)
+    pixmap.fill(Qt.transparent)  # Usar Qt.transparent en lugar de código hexadecimal
     
     from PySide6.QtGui import QPainter
     painter = QPainter(pixmap)

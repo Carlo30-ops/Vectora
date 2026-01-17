@@ -199,7 +199,7 @@ class Sidebar(QWidget):
             logo_label.setPixmap(icon.pixmap(24, 24))
         else:
             logo_label.setText("V")
-            logo_label.setStyleSheet("color: white; font-weight: bold; font-size: 18px;")
+            logo_label.setStyleSheet("color: {{TEXT_PRIMARY}}; font-weight: bold; font-size: 18px;")
 
         logo_layout.addWidget(logo_label)
         header_layout.addWidget(logo_container)
@@ -251,57 +251,61 @@ class Sidebar(QWidget):
         return btn
 
     def create_footer(self) -> QWidget:
-        # (Footer creation remains same, skipping detail here for brevity if replace handles chunks,
-        # but replace targets 5-227 so I must provide full file or correct chunk)
-        # Assuming replacement of TOP part and METHODS up to create_footer...
-        # Wait, I am replacing practically the whole file except footer implementation details?
-        # NO, create_footer logic needs to remain. I'll include it.
-
+        """Crea el footer con indicador offline"""
         footer = QWidget()
         layout = QVBoxLayout(footer)
-        layout.setContentsMargins(20, 16, 20, 32)
+        layout.setContentsMargins(16, 12, 16, 24)
+        layout.setSpacing(16)
 
-        card = QFrame()
-        card.setStyleSheet(
+        # Card de Offline - Actualizado con variables de tema
+        offline_card = QFrame()
+        offline_card.setStyleSheet(
             """
             QFrame {
-                background-color: transparent; 
-                border-radius: 16px; 
+                background-color: {{HOVER}};
+                border-radius: 12px;
+                border: 1px solid {{BORDER}};
                 padding: 16px;
-                border: 1px solid #e5e7eb;
             }
         """
-        )  # Simple override
-        l = QHBoxLayout(card)
-        l.setSpacing(12)
-        l.setContentsMargins(0, 0, 0, 0)
+        )
+        offline_layout = QHBoxLayout(offline_card)
+        offline_layout.setSpacing(12)
+        offline_layout.setContentsMargins(0, 0, 0, 0)
 
+        # Icon
         icon_box = QLabel()
         icon_box.setFixedSize(32, 32)
-        icon_box.setStyleSheet("background-color: #e5e7eb; border-radius: 8px;")
+        icon_box.setStyleSheet(
+            "background-color: {{BORDER}}; border-radius: 8px;"
+        )
         icon_box.setAlignment(Qt.AlignCenter)
         shield = IconHelper.get_icon("shield")
         if not shield.isNull():
             icon_box.setPixmap(shield.pixmap(16, 16))
-        l.addWidget(icon_box)
+        offline_layout.addWidget(icon_box)
 
-        vl = QVBoxLayout()
-        vl.setSpacing(2)
-        t = QLabel("100% Offline")
-        t.setFont(QFont("Segoe UI", 9, QFont.Bold))
-        vl.addWidget(t)
+        # Text
+        text_vl = QVBoxLayout()
+        text_vl.setSpacing(2)
+        text_vl.setContentsMargins(0, 0, 0, 0)
+        
+        offline_title = QLabel("100% Offline")
+        offline_title.setFont(QFont("Segoe UI", 10, QFont.Bold))
+        offline_title.setStyleSheet("color: {{TEXT_PRIMARY}};")
+        text_vl.addWidget(offline_title)
 
-        d = QLabel("Privacidad total")
-        d.setFont(QFont("Segoe UI", 9))
-        d.setStyleSheet(
-            "color: #6b7280;"
-        )  # Keep explicit or use placeholder? Placeholder better but specific file.
-        vl.addWidget(d)
+        offline_desc = QLabel("Sin conexión requerida")
+        offline_desc.setFont(QFont("Segoe UI", 9))
+        offline_desc.setStyleSheet("color: {{TEXT_SECONDARY}};")
+        text_vl.addWidget(offline_desc)
 
-        l.addLayout(vl)
-        l.addStretch()
+        offline_layout.addLayout(text_vl)
+        offline_layout.addStretch()
 
-        layout.addWidget(card)
+        layout.addWidget(offline_card)
+        layout.addStretch()
+        
         return footer
 
     def on_nav_clicked(self, view_id: str):

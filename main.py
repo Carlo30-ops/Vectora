@@ -48,7 +48,7 @@ def main():
         logger.debug("Cargando tema inicial...")
         from ui.styles.theme_manager import theme_manager
 
-        theme_manager.apply_theme("light")
+        # El tema se aplica automáticamente en el constructor de ThemeManager
         logger.debug("Tema cargado exitosamente")
 
         # 4. Crear y mostrar ventana principal

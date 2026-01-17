@@ -117,8 +117,8 @@ class MergeWidget(BaseOperationWidget):
 
     def setup_ui(self):
         """Configura la interfaz específica - Modern Look"""
-        # Cambiar icono de la base
-        icon = IconHelper.get_icon("combine", color="#FFFFFF")
+        # Cambiar icono de la base - Automático con tema
+        icon = IconHelper.get_themed_icon("combine")
         if not icon.isNull():
             self.icon_lbl.setPixmap(icon.pixmap(36, 36))
 

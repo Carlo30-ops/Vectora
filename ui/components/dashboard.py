@@ -135,19 +135,19 @@ class Dashboard(QWidget):
             # Simple row: [Time] Operation - File
             row = QFrame()
             row.setStyleSheet(
-                "background-color: white; border-radius: 8px; border: 1px solid #e5e7eb;"
+                "background-color: {{SURFACE_BG}}; border-radius: 8px; border: 1px solid {{BORDER}};"
             )
             rl = QHBoxLayout(row)
             rl.setContentsMargins(15, 10, 15, 10)
 
             # Timestamp
             ts = QLabel(item["timestamp"].split(" ")[1])  # Solo hora
-            ts.setStyleSheet("color: #6b7280; font-family: monospace;")
+            ts.setStyleSheet("color: {{TEXT_SECONDARY}}; font-family: monospace;")
             rl.addWidget(ts)
 
             # Op
             op = QLabel(item["operation"])
-            op.setStyleSheet("font-weight: bold; color: #111827;")
+            op.setStyleSheet("font-weight: bold; color: {{TEXT_PRIMARY}};")
             rl.addWidget(op)
 
             # File
@@ -157,7 +157,7 @@ class Dashboard(QWidget):
                 fname = item["input"].replace("\\", "/").split("/")[-1]
 
             f = QLabel(fname)
-            f.setStyleSheet("color: #4b5563;")
+            f.setStyleSheet("color: {{TEXT_SECONDARY}};")
             rl.addWidget(f)
 
             rl.addStretch()
@@ -227,7 +227,7 @@ class Dashboard(QWidget):
 
         t = QLabel("Asistente Inteligente")
         t.setFont(QFont("Segoe UI", 22, QFont.Bold))
-        t.setStyleSheet("color: white; background: transparent; border: none;")
+        t.setStyleSheet("color: {{TEXT_PRIMARY}}; background: transparent; border: none;")
         vl.addWidget(t)
 
         d = QLabel("Déjanos ayudarte a elegir la mejor operación para tus archivos")
@@ -240,7 +240,7 @@ class Dashboard(QWidget):
 
         arrow = QLabel("→")
         arrow.setFont(QFont("Segoe UI", 28))
-        arrow.setStyleSheet("color: white; background: transparent; border: none;")
+        arrow.setStyleSheet("color: {{TEXT_PRIMARY}}; background: transparent; border: none;")
         l.addWidget(arrow)
 
         card.clicked.connect(lambda: self.operation_selected.emit("wizard"))
@@ -302,14 +302,14 @@ class Dashboard(QWidget):
         ibox = QFrame()
         ibox.setFixedSize(50, 50)
         ibox.setObjectName("glassContainer")
-        ibox.setStyleSheet(f"background-color: #000000; border-radius: 12px;")
+        ibox.setStyleSheet("QFrame#glassContainer { background-color: {{ICON_CONTAINER_BG}}; border-radius: 12px; }")
 
         il = QVBoxLayout(ibox)
         il.setContentsMargins(0, 0, 0, 0)
         il.setAlignment(Qt.AlignCenter)
 
         icon_lbl = QLabel()
-        icon = IconHelper.get_icon(icon_name, color="#FFFFFF")
+        icon = IconHelper.get_themed_icon(icon_name)
         if not icon.isNull():
             icon_lbl.setPixmap(icon.pixmap(24, 24))
         il.addWidget(icon_lbl)
@@ -343,15 +343,15 @@ class Dashboard(QWidget):
         card.setStyleSheet(
             """
             QPushButton {
-                background-color: #ffffff;
-                border: 1px solid #e5e7eb;
+                background-color: {{SURFACE_BG}};
+                border: 1px solid {{BORDER}};
                 border-radius: 16px;
                 padding: 24px;
                 text-align: left;
             }
             QPushButton:hover {
-                background-color: #f9fafb;
-                border: 1px solid #000000;
+                background-color: {{HOVER}};
+                border: 1px solid {{ACCENT}};
             }
         """
         )
@@ -361,10 +361,10 @@ class Dashboard(QWidget):
 
         ibox = QLabel()
         ibox.setFixedSize(56, 56)
-        ibox.setStyleSheet("background-color: #111827; border-radius: 12px;")
+        ibox.setStyleSheet("background-color: {{ICON_CONTAINER_BG}}; border-radius: 12px;")
         ibox.setAlignment(Qt.AlignCenter)
 
-        icon = IconHelper.get_icon("layers", color="#ffffff")
+        icon = IconHelper.get_themed_icon("layers")
         if not icon.isNull():
             ibox.setPixmap(icon.pixmap(28, 28))
 
@@ -374,12 +374,12 @@ class Dashboard(QWidget):
         vl.setSpacing(2)
         t = QLabel("Procesamiento por Lotes")
         t.setFont(QFont("Segoe UI", 16, QFont.Bold))
-        t.setStyleSheet("color: #111827; border: none; background: transparent;")
+        t.setStyleSheet("color: {{TEXT_PRIMARY}}; border: none; background: transparent;")
         vl.addWidget(t)
 
         d = QLabel("Automatiza tareas múltiples en una sola ejecución")
         d.setFont(QFont("Segoe UI", 12))
-        d.setStyleSheet("color: #6b7280; border: none; background: transparent;")
+        d.setStyleSheet("color: {{TEXT_SECONDARY}}; border: none; background: transparent;")
         vl.addWidget(d)
 
         l.addLayout(vl)
@@ -388,7 +388,7 @@ class Dashboard(QWidget):
         # Arrow
         arrow = QLabel("→")
         arrow.setFont(QFont("Segoe UI", 20))
-        arrow.setStyleSheet("color: #d1d5db; background: transparent; border: none;")
+        arrow.setStyleSheet("color: {{TEXT_TERTIARY}}; background: transparent; border: none;")
         l.addWidget(arrow)
 
         card.clicked.connect(lambda: self.operation_selected.emit("batch"))
@@ -399,15 +399,15 @@ class Dashboard(QWidget):
         card.setStyleSheet(
             """
             QPushButton {
-                background-color: #ffffff;
-                border: 1px solid #e5e7eb;
+                background-color: {{SURFACE_BG}};
+                border: 1px solid {{BORDER}};
                 border-radius: 16px;
                 padding: 24px;
                 text-align: left;
             }
             QPushButton:hover {
-                background-color: #f9fafb;
-                border: 1px solid #000000;
+                background-color: {{HOVER}};
+                border: 1px solid {{ACCENT}};
             }
         """
         )

@@ -19,28 +19,73 @@ from PySide6.QtWidgets import QFrame, QGraphicsOpacityEffect, QLabel, QPushButto
 
 
 class IconHelper:
+    """
+    Helper para manejar iconos con soporte para Dark Mode
+    Invierte automáticamente los colores de iconos según el tema actual
+    """
+    
     @staticmethod
     def get_icon(name, color=None, active_color=None):
         """
-        Carga iconos usando el sistema embebido.
-        Si se provee active_color, el icono tendrá estado Normal/On distinto.
+        Carga iconos usando el sistema embebido con soporte para Dark Mode.
+        Si color es None, obtiene automáticamente el color del tema.
+        
+        Args:
+            name: Nombre del icono (ej: 'combine', 'scissors')
+            color: Color hexadecimal personalizado (optional)
+            active_color: Color para estado activo/ON (optional)
+        
+        Returns:
+            QIcon con soporte para diferentes estados
         """
         try:
             from icons.icons import get_icon_qicon
-
+            from ui.styles.theme_manager import theme_manager
+            
+            # Si no se especifica color, usar del tema actual
+            if color is None:
+                color = theme_manager.get_color("ICON_CONTAINER_FG")
+            
             icon = get_icon_qicon(name, color)
 
             if active_color:
                 # Generar pixmap para estado activo (Checked/On)
                 active_icon = get_icon_qicon(name, active_color)
-                # Extraer pixmap y añadirlo al icono original como estado 'On'
-                # QIcon.Mode.Normal, QIcon.State.On
                 pixmap_on = active_icon.pixmap(24, 24)
                 icon.addPixmap(pixmap_on, QIcon.Normal, QIcon.On)
 
             return icon
         except Exception as e:
             print(f"Error cargando icono '{name}': {e}")
+            return QIcon()
+    
+    @staticmethod
+    def get_themed_icon(name, theme_manager_instance=None):
+        """
+        Obtiene un icono con colores automáticos del tema.
+        Invierte iconos automáticamente en dark mode:
+        - Light Mode: Icono blanco sobre fondo negro
+        - Dark Mode: Icono negro sobre fondo blanco
+        
+        Args:
+            name: Nombre del icono
+            theme_manager_instance: Instancia de ThemeManager (optional)
+        
+        Returns:
+            QIcon con colores adaptados al tema actual
+        """
+        try:
+            from icons.icons import get_icon_qicon
+            from ui.styles.theme_manager import theme_manager as default_tm
+            
+            tm = theme_manager_instance or default_tm
+            
+            # Obtener color de icono según tema actual
+            icon_color = tm.get_color("ICON_CONTAINER_FG")
+            
+            return get_icon_qicon(name, icon_color)
+        except Exception as e:
+            print(f"Error cargando icono temático '{name}': {e}")
             return QIcon()
 
 

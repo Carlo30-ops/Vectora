@@ -85,8 +85,8 @@ class SplitWidget(BaseOperationWidget):
 
     def setup_ui(self):
         """Configura la interfaz - Look Premium"""
-        # Cambiar icono de la base
-        icon = IconHelper.get_icon("scissors", color="#FFFFFF")
+        # Cambiar icono de la base - Automático con tema
+        icon = IconHelper.get_themed_icon("scissors")
         if not icon.isNull():
             self.icon_lbl.setPixmap(icon.pixmap(36, 36))
 

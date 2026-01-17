@@ -68,6 +68,9 @@ class Settings:
         self.MAX_FILE_SIZE_MB = int(os.getenv('MAX_FILE_SIZE_MB', 100))
         self.MAX_BATCH_FILES = int(os.getenv('MAX_BATCH_FILES', 50))
         
+        # Compresión - Nivel por defecto
+        self.DEFAULT_COMPRESSION_QUALITY = 'medium'
+        
         self.COMPRESSION_LEVELS = {
             'low': {'value': 25, 'quality': 90, 'label': 'Baja', 'reduction': '~20%', 'description': 'Alta calidad'},
             'medium': {'value': 50, 'quality': 70, 'label': 'Media', 'reduction': '~40%', 'description': 'Calidad equilibrada'},

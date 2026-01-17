@@ -66,8 +66,8 @@ class CompressWidget(BaseOperationWidget):
 
     def setup_ui(self):
         """Configura la interfaz - Look Premium"""
-        # Cambiar icono de la base
-        icon = IconHelper.get_icon("compress", color="#FFFFFF")
+        # Cambiar icono de la base - Automático con tema
+        icon = IconHelper.get_themed_icon("archive")
         if not icon.isNull():
             self.icon_lbl.setPixmap(icon.pixmap(36, 36))
 
